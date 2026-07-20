@@ -26,7 +26,7 @@ const config: Config = {
             foreground: "#18181B",
             content1: "#FFFFFF",
             content2: "#F4F4F5",
-            // Forensic slate — not Vault green
+            // Forensic slate — Default theme (Mouve overrides via CSS)
             primary: {
               DEFAULT: "#1E293B",
               foreground: "#FFFFFF",

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroui/react": "^2.7.11",
+    "@heroui/use-clipboard": "^2.1.9",
     "@iconify/react": "^6.0.2",
     "@langchain/core": "^1.2.3",
     "@langchain/langgraph": "^1.4.8",

@@ -9,15 +9,27 @@ import {
   Chip,
   Input,
   ScrollShadow,
-  Switch,
+  Spacer,
   Textarea,
-  cn,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
-import ActionCard from "@/components/action-card";
+
+import ActionCard from "@/components/pro/cards/action-card";
+import SwitchCell from "@/components/pro/cards/switch-cell";
+import CellValue from "@/components/pro/cards/cell-value";
+import UserCell from "@/components/pro/cards/user-cell";
+import ClaimCard from "@/components/pro/cards/claim-card";
+import EmptyState from "@/components/pro/cards/empty-state";
+import MessageCard from "@/components/pro/ai/message-card";
+import PromptComposer from "@/components/pro/ai/prompt-composer";
+import Sidebar, { type SidebarItem } from "@/components/pro/sidebar/sidebar";
+import SidebarDrawer from "@/components/pro/sidebar/sidebar-drawer";
+import RowSteps from "@/components/pro/stepper/row-steps";
+import TrendCard from "@/components/pro/charts/trend-card";
+import SupportCard from "@/components/pro/forms/support-card";
+import { CopyText } from "@/components/pro/tables/copy-text";
 import { BrandMark } from "@/components/brand-mark";
-import { DetailCard, EmptyState } from "@/components/detail-card";
-import PromptInput from "@/components/prompt-input";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import type {
   AnalysisResult,
   AppStep,
@@ -28,12 +40,55 @@ import type {
 } from "@/lib/types";
 import { witnessPhysicsScore } from "@/lib/physics-score";
 
-const NAV: { id: AppStep; label: string; icon: string }[] = [
-  { id: "INPUT", label: "Case", icon: "solar:document-add-bold-duotone" },
-  { id: "ANALYSIS", label: "Checks", icon: "solar:magnifer-bold-duotone" },
-  { id: "VIDEOS", label: "Scenes", icon: "solar:videocamera-record-bold-duotone" },
-  { id: "REPORT", label: "Summary", icon: "solar:clipboard-check-bold-duotone" },
-  { id: "DETECTIVE", label: "Ask", icon: "solar:chat-round-line-bold-duotone" },
+const STEPS: AppStep[] = [
+  "INPUT",
+  "ANALYSIS",
+  "VIDEOS",
+  "REPORT",
+  "DETECTIVE",
+];
+
+const NAV: SidebarItem[] = [
+  {
+    key: "INPUT",
+    title: "Case",
+    icon: "solar:document-add-bold-duotone",
+  },
+  {
+    key: "ANALYSIS",
+    title: "Checks",
+    icon: "solar:magnifer-bold-duotone",
+  },
+  {
+    key: "VIDEOS",
+    title: "Scenes",
+    icon: "solar:videocamera-record-bold-duotone",
+  },
+  {
+    key: "REPORT",
+    title: "Summary",
+    icon: "solar:clipboard-check-bold-duotone",
+  },
+  {
+    key: "DETECTIVE",
+    title: "Ask",
+    icon: "solar:chat-round-line-bold-duotone",
+  },
+];
+
+const ASK_IDEAS = [
+  {
+    title: "Why was the scar hard to believe?",
+    description: "distance and light",
+  },
+  {
+    title: "What did everyone agree on?",
+    description: "matching details",
+  },
+  {
+    title: "Who saw the alley?",
+    description: "who was there",
+  },
 ];
 
 function emptyCase(): CaseInput {
@@ -70,6 +125,7 @@ export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const inApp = Boolean(analysis) || pending;
+  const stepIndex = STEPS.indexOf(step);
 
   const formCompletion = useMemo(() => {
     let score = 0;
@@ -187,22 +243,88 @@ export default function Home() {
   }
 
   const pageTitle =
-    NAV.find((n) => n.id === step)?.label ?? "Detectr";
+    NAV.find((n) => n.key === step)?.title ?? "Detectr";
   const pageSub = pending
     ? "Reviewing testimony…"
     : analysis
       ? caseInput.caseName || "Open case"
       : "Build a case to begin";
 
-  // ——— Landing (GhostKeys LandingPage quality) ———
+  const sidebarNav = (
+    <>
+      <div className="flex items-center gap-2 px-2">
+        <BrandMark size={32} framed />
+        <div className="min-w-0">
+          <p className="truncate text-small font-bold uppercase tracking-wide">
+            Detectr
+          </p>
+          <p className="truncate text-tiny text-default-400">
+            {caseInput.caseName || "Open case"}
+          </p>
+        </div>
+      </div>
+
+      <Spacer y={6} />
+
+      <ScrollShadow className="-mr-6 h-full max-h-full py-2 pr-6">
+        <Sidebar
+          key={step}
+          defaultSelectedKey={step}
+          items={NAV}
+          onSelect={(key) => go(key as AppStep)}
+        />
+      </ScrollShadow>
+
+      <Spacer y={4} />
+
+      <div className="mt-auto flex flex-col gap-1">
+        <Button
+          className="justify-start text-default-500 data-[hover=true]:text-foreground"
+          startContent={
+            <Icon
+              className="text-default-500"
+              icon="solar:play-circle-line-duotone"
+              width={22}
+            />
+          }
+          variant="light"
+          onPress={loadDemo}
+        >
+          Sample case
+        </Button>
+        <Button
+          className="justify-start text-default-500 data-[hover=true]:text-foreground"
+          startContent={
+            <Icon
+              className="text-default-500"
+              icon="solar:add-circle-line-duotone"
+              width={22}
+            />
+          }
+          variant="light"
+          onPress={() => {
+            setAnalysis(null);
+            setCaseInput(emptyCase());
+            setChat([]);
+            setStep("INPUT");
+          }}
+        >
+          New case
+        </Button>
+      </div>
+    </>
+  );
+
+  // ——— Landing (clean_product: top bar → chips → hero → 3 ActionCards → form) ———
   if (!inApp) {
     return (
-      <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-10 bg-background px-4 py-6 sm:px-6 sm:py-10">
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-large border border-default-200 bg-content1 px-4 py-3 shadow-small">
+      <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 bg-background px-4 py-6 sm:px-6 sm:py-10">
+        <header className="flex flex-col gap-3 rounded-large border-small border-default-200 bg-content1 px-4 py-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <BrandMark size={40} framed />
             <p className="text-medium font-semibold text-default-900">Detectr</p>
           </div>
+          <ThemeSwitcher className="w-full overflow-x-auto sm:w-auto" />
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
@@ -227,28 +349,27 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="flex flex-col gap-8 rounded-large border border-default-200 bg-content1 px-6 py-10 shadow-small sm:px-10 sm:py-14">
-          <div className="flex flex-wrap gap-2">
-            <Chip size="sm" color="primary" variant="flat">
-              For investigators
-            </Chip>
-            <Chip size="sm" variant="flat">
-              Witness statements
-            </Chip>
-            <Chip size="sm" variant="flat">
-              Scene videos
-            </Chip>
-          </div>
-          <div className="flex max-w-xl flex-col gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-default-900 sm:text-4xl sm:leading-[1.15]">
-              when four people tell four different nights
-            </h1>
-            <p className="text-medium leading-relaxed text-default-500">
-              Detectr shows what holds up, where stories clash, and how the
-              scene likely looked — so a jury can actually follow along.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
+          <Chip size="sm" color="primary" variant="flat">
+            For investigators
+          </Chip>
+          <Chip size="sm" variant="flat">
+            Witness statements
+          </Chip>
+          <Chip size="sm" variant="flat">
+            Scene videos
+          </Chip>
+        </div>
+
+        <section className="flex max-w-xl flex-col gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-default-900 sm:text-4xl sm:leading-[1.15]">
+            when four people tell four different nights
+          </h1>
+          <p className="text-medium leading-relaxed text-default-500">
+            Detectr shows what holds up, where stories clash, and how the scene
+            likely looked — so a jury can actually follow along.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
             <Button
               color="primary"
               radius="full"
@@ -278,35 +399,25 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="flex flex-col gap-4">
-          <div>
-            <p className="text-large font-medium text-default-900">
-              Why Detectr
-            </p>
-            <p className="text-small text-default-500">
-              From messy statements to a picture you can show people.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <ActionCard
-              color="primary"
-              icon="solar:document-add-bold-duotone"
-              title="Gather what was said"
-              description="Case facts and every witness statement in one place."
-            />
-            <ActionCard
-              color="secondary"
-              icon="solar:magnifer-bold-duotone"
-              title="See what holds up"
-              description="Spot weak details and stories that do not match."
-            />
-            <ActionCard
-              icon="solar:videocamera-record-bold-duotone"
-              title="Show the scene"
-              description="Short clips so everyone can picture that night."
-            />
-          </div>
-        </section>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <ActionCard
+            color="primary"
+            icon="solar:document-add-bold-duotone"
+            title="Gather what was said"
+            description="Case facts and every witness statement in one place."
+          />
+          <ActionCard
+            color="secondary"
+            icon="solar:magnifer-bold-duotone"
+            title="See what holds up"
+            description="Spot weak details and stories that do not match."
+          />
+          <ActionCard
+            icon="solar:videocamera-record-bold-duotone"
+            title="Show the scene"
+            description="Short clips so everyone can picture that night."
+          />
+        </div>
 
         {error && (
           <Card className="border-small border-danger-300" shadow="sm">
@@ -378,19 +489,13 @@ export default function Home() {
                   setCaseInput({ ...caseInput, description: v })
                 }
               />
-              <div className="flex items-center justify-between rounded-medium border border-default-200 bg-default-50 px-4 py-3">
-                <div>
-                  <p className="text-small font-medium">Show the scene as video</p>
-                  <p className="text-tiny text-default-500">
-                    Short clips for a jury. Takes longer.
-                  </p>
-                </div>
-                <Switch
-                  isSelected={generateVideos}
-                  onValueChange={setGenerateVideos}
-                  color="primary"
-                />
-              </div>
+              <SwitchCell
+                label="Show the scene as video"
+                description="Short clips for a jury. Takes longer."
+                color="primary"
+                isSelected={generateVideos}
+                onValueChange={setGenerateVideos}
+              />
               <Button
                 color="primary"
                 radius="full"
@@ -463,114 +568,23 @@ export default function Home() {
     );
   }
 
-  // ——— App shell (GhostKeys VaultApp quality) ———
-  const sidebarBody = (
-    <>
-      <div className="flex shrink-0 items-center gap-2.5">
-        <BrandMark size={36} framed />
-        <div className="min-w-0">
-          <p className="truncate text-medium font-semibold text-default-900">
-            Detectr
-          </p>
-          <p className="truncate text-tiny text-default-400">
-            {caseInput.caseName || "Open case"}
-          </p>
-        </div>
-      </div>
-
-      <nav className="mt-6 flex flex-col gap-1" aria-label="Detectr">
-        {NAV.map((item) => {
-          const active = step === item.id;
-          const locked = item.id !== "INPUT" && !analysis;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              disabled={locked}
-              onClick={() => go(item.id)}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-medium px-3 py-2.5 text-left text-small font-medium transition-colors",
-                active
-                  ? "bg-primary text-primary-foreground shadow-small"
-                  : "text-default-600 hover:bg-default-100",
-                locked && "cursor-not-allowed opacity-40",
-              )}
-            >
-              <Icon icon={item.icon} width={20} className="shrink-0" />
-              <span className="min-w-0 flex-1">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="mt-auto flex shrink-0 flex-col gap-2 border-t border-default-200 pt-4">
-        <Button
-          size="sm"
-          radius="full"
-          variant="bordered"
-          startContent={<Icon icon="solar:refresh-linear" width={16} />}
-          onPress={loadDemo}
-        >
-          Sample case
-        </Button>
-        <Button
-          size="sm"
-          radius="full"
-          variant="flat"
-          startContent={<Icon icon="solar:add-circle-linear" width={16} />}
-          onPress={() => {
-            setAnalysis(null);
-            setCaseInput(emptyCase());
-            setChat([]);
-            setStep("INPUT");
-          }}
-        >
-          New case
-        </Button>
-      </div>
-    </>
-  );
-
+  // ——— App shell (Pro Sidebar 19 + RowSteps) ———
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background">
-      <aside className="hidden h-full w-56 shrink-0 flex-col border-r border-default-200 bg-content1 md:flex lg:w-60">
-        <div className="flex h-full min-h-0 flex-col p-4">{sidebarBody}</div>
+      <aside className="relative hidden h-full w-72 shrink-0 flex-col border-r-small border-divider bg-content1 p-6 md:flex">
+        {sidebarNav}
       </aside>
 
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="Close menu"
-            onClick={() => setMobileOpen(false)}
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-[min(16rem,88vw)] flex-col border-r border-default-200 bg-content1 shadow-large">
-            <div className="flex items-center justify-between border-b border-default-200 px-3 py-3">
-              <div className="flex items-center gap-2">
-                <BrandMark size={28} framed />
-                <span className="text-small font-semibold">Detectr</span>
-              </div>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                radius="full"
-                aria-label="Close"
-                onPress={() => setMobileOpen(false)}
-              >
-                <Icon icon="solar:close-circle-linear" width={20} />
-              </Button>
-            </div>
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-              {sidebarBody}
-            </div>
-          </aside>
-        </div>
-      )}
+      <SidebarDrawer
+        isOpen={mobileOpen}
+        onOpenChange={setMobileOpen}
+        sidebarWidth={288}
+      >
+        <div className="flex h-full flex-col p-6">{sidebarNav}</div>
+      </SidebarDrawer>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="flex shrink-0 items-center gap-3 border-b border-default-200 bg-content1 px-3 py-3 sm:px-5">
+        <header className="flex shrink-0 flex-wrap items-center gap-3 border-b-small border-divider bg-content1 px-3 py-3 sm:px-5">
           <Button
             isIconOnly
             size="sm"
@@ -588,6 +602,7 @@ export default function Home() {
             </h1>
             <p className="truncate text-tiny text-default-500">{pageSub}</p>
           </div>
+          <ThemeSwitcher className="order-last w-full overflow-x-auto sm:order-none sm:w-auto" />
           {pending && (
             <Chip size="sm" color="primary" variant="flat" className="shrink-0">
               Working
@@ -596,7 +611,16 @@ export default function Home() {
         </header>
 
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-5 sm:px-6 sm:py-7">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5 sm:px-6 sm:py-7">
+            <RowSteps
+              currentStep={pending ? 1 : Math.max(stepIndex, 0)}
+              color="primary"
+              steps={STEPS.map((s) => ({
+                title: NAV.find((n) => n.key === s)?.title ?? s,
+              }))}
+              onStepChange={(i) => go(STEPS[i])}
+            />
+
             {error && (
               <Card className="border-small border-danger-300" shadow="sm">
                 <CardBody className="flex flex-row items-start gap-3 p-4">
@@ -683,6 +707,13 @@ export default function Home() {
                         setCaseInput({ ...caseInput, description: v })
                       }
                     />
+                    <SwitchCell
+                      label="Show the scene as video"
+                      description="Short clips for a jury. Takes longer."
+                      color="primary"
+                      isSelected={generateVideos}
+                      onValueChange={setGenerateVideos}
+                    />
                     <Button
                       color="primary"
                       radius="full"
@@ -696,12 +727,25 @@ export default function Home() {
                     </Button>
                   </CardBody>
                 </Card>
+                <Card className="border-small border-default-200" shadow="sm">
+                  <CardBody className="flex flex-col gap-1 p-2">
+                    {caseInput.witnesses.map((w, idx) => (
+                      <UserCell
+                        key={w.id}
+                        avatar="/favicon.svg"
+                        name={w.name || `Witness ${idx + 1}`}
+                        permission={w.position || "No location set"}
+                      />
+                    ))}
+                  </CardBody>
+                </Card>
                 {caseInput.witnesses.map((w, idx) => (
-                  <DetailCard
+                  <ClaimCard
                     key={w.id}
                     title={w.name || `Witness ${idx + 1}`}
                     subtitle={w.position || "No location set"}
                     body={w.statement || "No statement yet"}
+                    icon="solar:user-bold-duotone"
                   />
                 ))}
               </>
@@ -721,12 +765,12 @@ export default function Home() {
                 {analysis.claims.map((claim) => {
                   const p = physicsFor(claim.id);
                   return (
-                    <DetailCard
+                    <ClaimCard
                       key={claim.id}
                       title={claim.text}
                       subtitle={claim.witnessName}
                       tags={claim.tags}
-                      metric={p ? verdictLabel(p.verdict) : undefined}
+                      status={p ? verdictLabel(p.verdict) : undefined}
                       metricLabel={p ? `${p.confidence}% sure` : undefined}
                       body={p?.reason}
                     />
@@ -741,13 +785,14 @@ export default function Home() {
                   );
                   if (!claimsByWitness(w.id).length) return null;
                   return (
-                    <DetailCard
+                    <ClaimCard
                       key={`score-${w.id}`}
                       title={w.name}
                       subtitle="How solid is their account overall?"
                       metric={`${score}%`}
                       metricLabel="solid"
                       progress={score}
+                      icon="solar:user-check-bold-duotone"
                     />
                   );
                 })}
@@ -878,29 +923,45 @@ export default function Home() {
 
             {step === "REPORT" && analysis && (
               <>
+                <dl className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
+                  <TrendCard
+                    title="People"
+                    value={String(analysis.report.totalWitnesses)}
+                    change="witnesses"
+                    changeType="neutral"
+                    trendType="neutral"
+                  />
+                  <TrendCard
+                    title="Details"
+                    value={String(analysis.report.totalClaims)}
+                    change="claims"
+                    changeType="positive"
+                    trendType="up"
+                  />
+                  <TrendCard
+                    title="Hard to believe"
+                    value={String(analysis.report.physicsFlags)}
+                    change="flags"
+                    changeType={
+                      analysis.report.physicsFlags > 0 ? "negative" : "positive"
+                    }
+                    trendType={
+                      analysis.report.physicsFlags > 0 ? "down" : "neutral"
+                    }
+                  />
+                </dl>
+
                 <Card className="border-small border-default-200" shadow="sm">
-                  <CardHeader className="flex flex-col items-start gap-1 px-5 pb-0 pt-5">
+                  <CardHeader className="flex flex-col items-start gap-2 px-5 pb-0 pt-5">
                     <p className="text-large font-medium">What we found</p>
-                    <p className="text-small text-default-500">
+                    <CopyText textClassName="text-small text-default-500">
                       {analysis.report.summary}
-                    </p>
+                    </CopyText>
                   </CardHeader>
-                  <CardBody className="grid gap-3 px-5 pb-5 sm:grid-cols-3">
-                    {[
-                      ["People", analysis.report.totalWitnesses],
-                      ["Details", analysis.report.totalClaims],
-                      ["Hard to believe", analysis.report.physicsFlags],
-                    ].map(([label, value]) => (
-                      <div
-                        key={String(label)}
-                        className="rounded-medium border border-default-200 bg-default-50 p-3"
-                      >
-                        <p className="text-tiny text-default-400">{label}</p>
-                        <p className="font-mono text-2xl text-primary">
-                          {value}
-                        </p>
-                      </div>
-                    ))}
+                  <CardBody className="flex flex-col gap-1 px-5 pb-5">
+                    <CellValue label="Case" value={caseInput.caseName} />
+                    <CellValue label="Where" value={caseInput.location} />
+                    <CellValue label="When" value={caseInput.dateTime} />
                   </CardBody>
                 </Card>
 
@@ -910,7 +971,11 @@ export default function Home() {
                   </p>
                 </div>
                 {analysis.report.keyFindings.map((f, i) => (
-                  <DetailCard key={i} title={f} />
+                  <ClaimCard
+                    key={i}
+                    title={f}
+                    icon="solar:checklist-minimalistic-bold-duotone"
+                  />
                 ))}
 
                 <Card className="border-small border-default-200" shadow="sm">
@@ -933,7 +998,7 @@ export default function Home() {
                       Careful review vs a quick skim
                     </p>
                   </CardHeader>
-                  <CardBody className="flex flex-col gap-2 px-5 pb-5">
+                  <CardBody className="flex flex-col gap-1 px-5 pb-5">
                     {(
                       [
                         ["Details found", "claimsExtracted"],
@@ -944,114 +1009,78 @@ export default function Home() {
                     ).map(([label, key]) => {
                       const m = analysis.baseline.multi[key];
                       const s = analysis.baseline.single?.[key] ?? 0;
+                      const delta = m - s;
                       return (
-                        <div
+                        <CellValue
                           key={key}
-                          className="flex items-center justify-between rounded-medium border border-default-200 bg-default-50 px-3 py-2"
-                        >
-                          <p className="text-small">{label}</p>
-                          <div className="flex items-center gap-3 font-mono text-tiny">
-                            <span className="text-primary">Full {m}</span>
-                            <span className="text-default-400">Quick {s}</span>
-                            <Chip size="sm" variant="flat" color="warning">
-                              {m - s >= 0 ? `+${m - s}` : m - s}
-                            </Chip>
-                          </div>
-                        </div>
+                          label={label}
+                          value={
+                            <span className="flex items-center gap-2 font-mono text-tiny">
+                              <span className="text-primary">Full {m}</span>
+                              <span className="text-default-400">Quick {s}</span>
+                              <Chip size="sm" variant="flat" color="warning">
+                                {delta >= 0 ? `+${delta}` : delta}
+                              </Chip>
+                            </span>
+                          }
+                        />
                       );
                     })}
                   </CardBody>
                 </Card>
+
+                <SupportCard
+                  message="Still unsure? Ask about any detail."
+                  onPress={() => go("DETECTIVE")}
+                />
               </>
             )}
 
             {step === "DETECTIVE" && analysis && (
-              <Card className="border-small border-default-200" shadow="sm">
-                <CardHeader className="flex flex-col items-start gap-1 px-5 pb-0 pt-5">
-                  <p className="text-large font-medium">Ask about the case</p>
+              <div className="flex flex-col gap-6">
+                <div>
+                  <p className="text-large font-medium text-default-900">
+                    Ask about the case
+                  </p>
                   <p className="text-small text-default-500">
                     Why a detail looks weak, or what everyone agreed on
                   </p>
-                </CardHeader>
-                <CardBody className="flex flex-col gap-4 px-5 pb-5">
-                  <ScrollShadow className="flex max-h-80 flex-col gap-3">
-                    {chat.map((m, i) => (
-                      <div
+                </div>
+
+                <SupportCard message="We’re here to walk through the testimony." />
+
+                <ScrollShadow className="flex max-h-[28rem] flex-col gap-4">
+                  {chat.map((m, i) =>
+                    m.role === "assistant" ? (
+                      <MessageCard
                         key={i}
-                        className={cn(
-                          "max-w-[90%] rounded-large px-3 py-2 text-small",
-                          m.role === "user"
-                            ? "ml-auto bg-primary text-primary-foreground"
-                            : "bg-default-100 text-default-700",
-                        )}
-                      >
-                        {m.content}
-                      </div>
-                    ))}
-                    {chatBusy && (
-                      <p className="text-tiny text-default-400">Thinking…</p>
-                    )}
-                  </ScrollShadow>
-                  <form
-                    className="flex w-full flex-col items-start rounded-medium bg-default-100 transition-colors hover:bg-default-200/70"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      void sendChat();
-                    }}
-                  >
-                    <PromptInput
-                      classNames={{
-                        inputWrapper: "!bg-transparent shadow-none",
-                        input: "pt-1 pl-2 pb-6 !pr-10 text-medium",
-                      }}
-                      endContent={
-                        <Button
-                          isIconOnly
-                          color={!chatInput ? "default" : "primary"}
-                          isDisabled={!chatInput || chatBusy}
-                          radius="lg"
-                          size="sm"
-                          variant="solid"
-                          type="submit"
-                          aria-label="Send"
-                        >
-                          <Icon
-                            className={
-                              !chatInput
-                                ? "text-default-600"
-                                : "text-primary-foreground"
-                            }
-                            icon="solar:arrow-up-linear"
-                            width={20}
-                          />
-                        </Button>
-                      }
-                      minRows={2}
-                      radius="lg"
-                      value={chatInput}
-                      variant="flat"
-                      onValueChange={setChatInput}
-                    />
-                    <div className="flex w-full gap-2 overflow-x-auto px-3 pb-3">
-                      {[
-                        "Why was the scar hard to believe?",
-                        "What did everyone agree on?",
-                        "Who saw the alley?",
-                      ].map((q) => (
-                        <Button
-                          key={q}
-                          size="sm"
-                          variant="flat"
-                          className="shrink-0"
-                          onPress={() => setChatInput(q)}
-                        >
-                          {q}
-                        </Button>
-                      ))}
-                    </div>
-                  </form>
-                </CardBody>
-              </Card>
+                        showFeedback
+                        avatar="/favicon.svg"
+                        message={m.content}
+                      />
+                    ) : (
+                      <MessageCard
+                        key={i}
+                        className="flex-row-reverse"
+                        messageClassName="bg-primary text-primary-foreground"
+                        avatar={undefined}
+                        message={m.content}
+                      />
+                    ),
+                  )}
+                  {chatBusy && (
+                    <p className="text-tiny text-default-400">Thinking…</p>
+                  )}
+                </ScrollShadow>
+
+                <PromptComposer
+                  value={chatInput}
+                  onValueChange={setChatInput}
+                  onSubmit={() => void sendChat()}
+                  isDisabled={chatBusy}
+                  ideas={ASK_IDEAS}
+                />
+              </div>
             )}
           </div>
         </main>
