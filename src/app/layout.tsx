@@ -18,7 +18,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Detectr",
   description:
-    "Witness testimony analysis, physics checks, and scene reconstructions.",
+    "See what witnesses said, what holds up, and how the scene likely looked.",
 };
 
 export default function RootLayout({
@@ -27,8 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
-      <body className="min-h-screen bg-zinc-100 font-sans text-foreground antialiased">
+    <html
+      lang="en"
+      className={`light ${sans.variable} ${mono.variable}`}
+      style={{ colorScheme: "light" }}
+    >
+      <body className="min-h-screen bg-white font-sans text-zinc-900 antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

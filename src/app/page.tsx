@@ -29,6 +29,26 @@ import { witnessPhysicsScore } from "@/lib/physics-score";
 
 const STEPS: AppStep[] = ["INPUT", "ANALYSIS", "VIDEOS", "REPORT", "DETECTIVE"];
 
+const STEP_LABEL: Record<AppStep, string> = {
+  INPUT: "Case",
+  ANALYSIS: "Checks",
+  VIDEOS: "Scenes",
+  REPORT: "Summary",
+  DETECTIVE: "Ask",
+};
+
+function statusLabel(status: CaseInput["status"]) {
+  if (status === "DRAFT") return "Draft";
+  if (status === "ANALYZING") return "Working";
+  return "Ready";
+}
+
+function verdictLabel(v: PhysicsResult["verdict"]) {
+  if (v === "POSSIBLE") return "Likely";
+  if (v === "UNLIKELY") return "Unlikely";
+  return "Unclear";
+}
+
 function emptyCase(): CaseInput {
   return {
     id: `DET-${Date.now()}`,
@@ -171,12 +191,10 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(15,138,82,0.12),_transparent_55%)]" />
-
+    <div className="relative min-h-screen overflow-x-hidden bg-[#F4F4F5]">
       <div className="relative mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
         {/* Top bar */}
-        <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+        <Card className="border-small border-default-200 bg-white shadow-sm" shadow="sm">
           <CardBody className="flex flex-row items-center justify-between gap-3 p-4">
             <div className="flex items-center gap-3">
               <div className="flex rounded-medium border border-primary-100 bg-primary-50 p-2">
@@ -188,12 +206,14 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-medium font-semibold">Detectr</p>
-                <p className="text-tiny text-default-400">Witness forensics</p>
+                <p className="text-tiny text-default-400">
+                  Clearer cases from messy testimony
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Chip size="sm" variant="flat" color="primary">
-                {caseInput.status}
+                {statusLabel(caseInput.status)}
               </Chip>
               <Button
                 size="sm"
@@ -204,7 +224,7 @@ export default function Home() {
                 }
                 onPress={loadDemo}
               >
-                Load demo
+                Try a sample case
               </Button>
             </div>
           </CardBody>
@@ -227,7 +247,7 @@ export default function Home() {
                 isDisabled={!canOpen}
                 onClick={() => canOpen && setStep(s)}
               >
-                {s.charAt(0) + s.slice(1).toLowerCase()}
+                {STEP_LABEL[s]}
               </Chip>
             );
           })}
@@ -235,12 +255,12 @@ export default function Home() {
 
         {/* Hero */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Make witness stories checkable
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
+            See what holds up and what the scene looked like
           </h1>
           <p className="max-w-xl text-small text-default-500">
-            Enter case details, run the agent team, then review physics scores,
-            scene videos, and a clear report.
+            Put in what people said. Detectr shows what is believable, where
+            stories clash, and a short video of the night.
           </p>
         </div>
 
@@ -248,22 +268,22 @@ export default function Home() {
         <div className="grid gap-3 sm:grid-cols-3">
           <ActionCard
             icon="solar:document-add-bold-duotone"
-            title="Build the case"
-            description="Names, places, and witness statements."
+            title="Add the facts"
+            description="Who was there, where, and what they said."
             color="primary"
             onPress={() => setStep("INPUT")}
           />
           <ActionCard
-            icon="solar:atom-bold-duotone"
-            title="Run agents"
-            description="Claims, physics, and cross-checks."
+            icon="solar:magnifer-bold-duotone"
+            title="Find what matters"
+            description="Spot weak details and matching stories."
             color={analysis ? "primary" : undefined}
             onPress={() => (analysis ? setStep("ANALYSIS") : runAnalysis(false))}
           />
           <ActionCard
             icon="solar:chat-round-line-bold-duotone"
-            title="Ask detective"
-            description="Questions grounded in the case file."
+            title="Ask follow-ups"
+            description="Get plain answers about the case."
             color={analysis ? "primary" : undefined}
             onPress={() => analysis && setStep("DETECTIVE")}
           />
@@ -301,14 +321,15 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <p className="text-medium">Agents are working</p>
+                  <p className="text-medium">Reviewing the testimony</p>
                   <p className="text-small text-default-400">
-                    Extracting claims, scoring physics, and drafting the report.
+                    Checking each detail, comparing witnesses, and writing a
+                    clear summary.
                   </p>
                 </div>
               </div>
               <Button color="primary" radius="full" isLoading>
-                Running…
+                Working…
               </Button>
             </CardBody>
           </Card>
@@ -321,17 +342,17 @@ export default function Home() {
               <CardHeader className="flex flex-col items-start gap-1 px-4 pb-0 pt-4">
                 <div className="flex w-full items-center justify-between gap-3">
                   <div>
-                    <p className="text-large font-medium">Case file</p>
-                    <p className="font-mono text-tiny text-default-400">
-                      {caseInput.id}
+                    <p className="text-large font-medium">What happened</p>
+                    <p className="text-tiny text-default-400">
+                      Start here, or open a sample case
                     </p>
                   </div>
                   <div className="w-28">
                     <p className="mb-1 text-right text-tiny text-default-400">
-                      {formCompletion}%
+                      {formCompletion}% ready
                     </p>
                     <Progress
-                      aria-label="Form completion"
+                      aria-label="How complete the case is"
                       size="sm"
                       color="primary"
                       value={formCompletion}
@@ -344,6 +365,7 @@ export default function Home() {
                   label="Case name"
                   placeholder="e.g. Oak Street Incident"
                   variant="bordered"
+                  classNames={{ inputWrapper: "bg-white" }}
                   value={caseInput.caseName}
                   onValueChange={(v) =>
                     setCaseInput({ ...caseInput, caseName: v })
@@ -357,9 +379,10 @@ export default function Home() {
                   }
                 />
                 <Input
-                  label="Location"
+                  label="Where"
                   placeholder="e.g. Oak Street & 5th Avenue"
                   variant="bordered"
+                  classNames={{ inputWrapper: "bg-white" }}
                   value={caseInput.location}
                   onValueChange={(v) =>
                     setCaseInput({ ...caseInput, location: v })
@@ -373,9 +396,10 @@ export default function Home() {
                   }
                 />
                 <Input
-                  label="Date and time"
+                  label="When"
                   placeholder="e.g. December 15, 2024, about 9:15 PM"
                   variant="bordered"
+                  classNames={{ inputWrapper: "bg-white" }}
                   value={caseInput.dateTime}
                   onValueChange={(v) =>
                     setCaseInput({ ...caseInput, dateTime: v })
@@ -389,20 +413,21 @@ export default function Home() {
                   }
                 />
                 <Textarea
-                  label="Case description"
-                  placeholder="What happened, in plain language…"
+                  label="In your own words"
+                  placeholder="What happened that night…"
                   variant="bordered"
+                  classNames={{ inputWrapper: "bg-white" }}
                   minRows={3}
                   value={caseInput.description}
                   onValueChange={(v) =>
                     setCaseInput({ ...caseInput, description: v })
                   }
                 />
-                <CellWrapper>
+                <CellWrapper className="bg-white">
                   <div>
-                    <p>Generate scene videos</p>
+                    <p>Show the scene as video</p>
                     <p className="text-small text-default-500">
-                      Live Wan clips. Leave off for a faster analysis pass.
+                      Short clips so a jury can picture it. Takes longer.
                     </p>
                   </div>
                   <Switch
@@ -421,7 +446,7 @@ export default function Home() {
                     }
                     onPress={() => runAnalysis(false)}
                   >
-                    Run agents
+                    Review this case
                   </Button>
                   <Button
                     variant="bordered"
@@ -432,7 +457,7 @@ export default function Home() {
                     }
                     onPress={() => runAnalysis(true)}
                   >
-                    Analyze demo
+                    Review sample case
                   </Button>
                 </div>
               </CardBody>
@@ -514,9 +539,9 @@ export default function Home() {
           <>
             <Card className="border-small border-default-200 shadow-sm" shadow="sm">
               <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                <p className="text-large font-medium">Claims</p>
+                <p className="text-large font-medium">What people said</p>
                 <p className="text-small text-default-500">
-                  {analysis.report.totalClaims} from{" "}
+                  {analysis.report.totalClaims} details from{" "}
                   {analysis.report.totalWitnesses} witnesses
                 </p>
               </CardHeader>
@@ -563,18 +588,18 @@ export default function Home() {
                     <div>
                       <p className="text-medium">{w.name}</p>
                       <p className="text-small text-default-500">
-                        Physics checks
+                        Could they really see or hear this?
                       </p>
                     </div>
                     <Chip color="primary" variant="flat">
-                      {score}%
+                      {score}% solid
                     </Chip>
                   </CardHeader>
                   <CardBody className="flex flex-col gap-2 p-4">
                     {wClaims.map((c) => {
                       const p = physicsFor(c.id);
                       return (
-                        <CellWrapper key={c.id} className="items-start">
+                        <CellWrapper key={c.id} className="items-start bg-white">
                           <div className="min-w-0 flex-1">
                             <p className="text-small">{c.text}</p>
                             <p className="mt-1 text-tiny text-default-400">
@@ -587,7 +612,7 @@ export default function Home() {
                               color={verdictChip(p?.verdict ?? "UNCERTAIN")}
                               variant="flat"
                             >
-                              {p?.verdict ?? "—"}
+                              {p ? verdictLabel(p.verdict) : "—"}
                             </Chip>
                             <p className="font-mono text-tiny text-default-400">
                               {p?.confidence ?? "—"}%
@@ -604,9 +629,9 @@ export default function Home() {
             {analysis.debates.length > 0 && (
               <Card className="border-small border-warning-500 shadow-sm" shadow="sm">
                 <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                  <p className="text-large font-medium">Agent debate</p>
+                  <p className="text-large font-medium">Where stories strain</p>
                   <p className="text-small text-default-500">
-                    Where physics and testimony pull apart
+                    Details that are hard to believe at that distance or light
                   </p>
                 </CardHeader>
                 <CardBody className="flex flex-col gap-3 p-4">
@@ -632,9 +657,9 @@ export default function Home() {
 
             <Card className="border-small border-default-200 shadow-sm" shadow="sm">
               <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                <p className="text-large font-medium">Cross-reference</p>
+                <p className="text-large font-medium">Do their stories match?</p>
                 <p className="text-small text-default-500">
-                  Agreements, conflicts, and one-off details
+                  What everyone agrees on, and what only one person claims
                 </p>
               </CardHeader>
               <CardBody className="grid gap-3 p-4 sm:grid-cols-2">
@@ -669,13 +694,13 @@ export default function Home() {
         {step === "VIDEOS" && analysis && (
           <>
             <div>
-              <h2 className="text-large font-medium">Scene reconstructions</h2>
+              <h2 className="text-large font-medium">See the night play out</h2>
               <p className="text-small text-default-500">
-                Live clips from the storyboard
+                Short clips so you can picture what witnesses described
               </p>
             </div>
             {analysis.videos.length === 0 ? (
-              <Card className="border-dashed border-default-200 shadow-none">
+              <Card className="border-dashed border-default-200 bg-white shadow-none">
                 <CardBody className="flex flex-col items-center gap-2 py-10 text-center">
                   <Icon
                     className="text-default-300"
@@ -683,7 +708,8 @@ export default function Home() {
                     width={40}
                   />
                   <p className="text-small text-default-500">
-                    No videos for this run. Turn on scene videos and analyze again.
+                    No clips yet. Turn on “Show the scene as video” and review
+                    again.
                   </p>
                 </CardBody>
               </Card>
@@ -727,16 +753,16 @@ export default function Home() {
           <>
             <Card className="border-small border-default-200 shadow-sm" shadow="sm">
               <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                <p className="text-large font-medium">Case report</p>
+                <p className="text-large font-medium">What we found</p>
                 <p className="text-small text-default-500">
                   {analysis.report.summary}
                 </p>
               </CardHeader>
               <CardBody className="grid gap-3 p-4 sm:grid-cols-3">
                 {[
-                  ["Witnesses", analysis.report.totalWitnesses],
-                  ["Claims", analysis.report.totalClaims],
-                  ["Physics flags", analysis.report.physicsFlags],
+                  ["People heard from", analysis.report.totalWitnesses],
+                  ["Details checked", analysis.report.totalClaims],
+                  ["Hard to believe", analysis.report.physicsFlags],
                 ].map(([label, value]) => (
                   <CellWrapper key={String(label)} className="flex-col items-start">
                     <p className="text-tiny text-default-400">{label}</p>
@@ -748,20 +774,20 @@ export default function Home() {
 
             <Card className="border-small border-default-200 shadow-sm" shadow="sm">
               <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                <p className="text-large font-medium">Key findings</p>
+                <p className="text-large font-medium">The takeaways</p>
               </CardHeader>
               <CardBody className="flex flex-col gap-2 p-4">
                 {analysis.report.keyFindings.map((f, i) => (
-                  <CellWrapper key={i} className="items-start">
+                  <CellWrapper key={i} className="items-start bg-white">
                     <p className="text-small">{f}</p>
                   </CellWrapper>
                 ))}
               </CardBody>
             </Card>
 
-            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+            <Card className="border-small border-default-200 bg-white shadow-sm" shadow="sm">
               <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                <p className="text-large font-medium">Narrative</p>
+                <p className="text-large font-medium">The story in full</p>
               </CardHeader>
               <CardBody className="p-4">
                 <p className="text-small leading-relaxed text-default-600">
@@ -770,30 +796,30 @@ export default function Home() {
               </CardBody>
             </Card>
 
-            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+            <Card className="border-small border-default-200 bg-white shadow-sm" shadow="sm">
               <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-                <p className="text-large font-medium">Agent team vs one model</p>
+                <p className="text-large font-medium">Why a full review helps</p>
                 <p className="text-small text-default-500">
-                  Same case, two approaches
+                  Same case: careful review vs a quick skim
                 </p>
               </CardHeader>
               <CardBody className="flex flex-col gap-2 p-4">
                 {(
                   [
-                    ["Claims", "claimsExtracted"],
-                    ["Conflicts", "conflictsFound"],
-                    ["Physics flags", "physicsFlags"],
-                    ["Agreements", "agreementsFound"],
+                    ["Details found", "claimsExtracted"],
+                    ["Conflicts found", "conflictsFound"],
+                    ["Hard-to-believe spots", "physicsFlags"],
+                    ["Matching points", "agreementsFound"],
                   ] as const
                 ).map(([label, key]) => {
                   const m = analysis.baseline.multi[key];
                   const s = analysis.baseline.single?.[key] ?? 0;
                   return (
-                    <CellWrapper key={key}>
+                    <CellWrapper key={key} className="bg-white">
                       <p className="text-small">{label}</p>
                       <div className="flex items-center gap-3 font-mono text-tiny">
-                        <span className="text-primary">Team {m}</span>
-                        <span className="text-default-400">Solo {s}</span>
+                        <span className="text-primary">Full {m}</span>
+                        <span className="text-default-400">Quick {s}</span>
                         <Chip size="sm" variant="flat" color="warning">
                           {m - s >= 0 ? `+${m - s}` : m - s}
                         </Chip>
@@ -810,9 +836,9 @@ export default function Home() {
         {step === "DETECTIVE" && analysis && (
           <Card className="border-small border-default-200 shadow-sm" shadow="sm">
             <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
-              <p className="text-large font-medium">Detective</p>
+              <p className="text-large font-medium">Ask about the case</p>
               <p className="text-small text-default-500">
-                Ask about flags, conflicts, or what the scene shows
+                Why a detail looks weak, or what everyone agreed on
               </p>
             </CardHeader>
             <CardBody className="flex flex-col gap-4 p-4">

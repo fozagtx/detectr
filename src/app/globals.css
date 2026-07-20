@@ -2,14 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #f4f4f5;
-  --foreground: #18181b;
+html {
+  color-scheme: light;
 }
 
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff;
+  color: #18181b;
   min-height: 100%;
 }

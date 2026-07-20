@@ -17,7 +17,7 @@ const PromptInput = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
           input: cn("py-0", classNames?.input),
         }}
         minRows={1}
-        placeholder="Ask about a claim, physics flag, or the scene…"
+        placeholder="e.g. Why was the scar hard to believe?"
         radius="lg"
         variant="bordered"
         {...props}
