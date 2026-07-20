@@ -22,14 +22,15 @@ import ClaimCard from "@/components/pro/cards/claim-card";
 import EmptyState from "@/components/pro/cards/empty-state";
 import MessageCard from "@/components/pro/ai/message-card";
 import PromptComposer from "@/components/pro/ai/prompt-composer";
+import LinkPrompt from "@/components/pro/ai/link-prompt";
 import Sidebar, { type SidebarItem } from "@/components/pro/sidebar/sidebar";
 import SidebarDrawer from "@/components/pro/sidebar/sidebar-drawer";
 import RowSteps from "@/components/pro/stepper/row-steps";
 import TrendCard from "@/components/pro/charts/trend-card";
 import SupportCard from "@/components/pro/forms/support-card";
 import { CopyText } from "@/components/pro/tables/copy-text";
+import CenteredNavbar from "@/components/pro/marketing/centered-navbar";
 import { BrandMark } from "@/components/brand-mark";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import type {
   AnalysisResult,
   AppStep,
@@ -123,6 +124,7 @@ export default function Home() {
   const [chatBusy, setChatBusy] = useState(false);
   const [generateVideos, setGenerateVideos] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [linkPrompt, setLinkPrompt] = useState("");
 
   const inApp = Boolean(analysis) || pending;
   const stepIndex = STEPS.indexOf(step);
@@ -315,41 +317,22 @@ export default function Home() {
     </>
   );
 
-  // ——— Landing (clean_product: top bar → chips → hero → 3 ActionCards → form) ———
+  // ——— Landing: Pro CenteredNavbar + hero + ActionCards + LinkPrompt ———
   if (!inApp) {
     return (
-      <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 bg-background px-4 py-6 sm:px-6 sm:py-10">
-        <header className="flex flex-col gap-3 rounded-large border-small border-default-200 bg-content1 px-4 py-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <BrandMark size={40} framed />
-            <p className="text-medium font-semibold text-default-900">Detectr</p>
-          </div>
-          <ThemeSwitcher className="w-full overflow-x-auto sm:w-auto" />
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="bordered"
-              radius="full"
-              startContent={
-                <Icon icon="solar:play-circle-linear" width={16} />
-              }
-              onPress={loadDemo}
-            >
-              Try sample case
-            </Button>
-            <Button
-              color="primary"
-              radius="full"
-              size="sm"
-              startContent={<Icon icon="solar:play-bold" width={16} />}
-              onPress={() => runAnalysis(true)}
-            >
-              See it work
-            </Button>
-          </div>
-        </header>
+      <div
+        id="top"
+        className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 bg-background px-4 pb-10 pt-4 sm:px-6 sm:pb-14"
+      >
+        <CenteredNavbar
+          onGetStarted={() => {
+            document
+              .getElementById("case-form")
+              ?.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap justify-center gap-2">
           <Chip size="sm" color="primary" variant="flat">
             For investigators
           </Chip>
@@ -361,7 +344,7 @@ export default function Home() {
           </Chip>
         </div>
 
-        <section className="flex max-w-xl flex-col gap-3">
+        <section className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
           <h1 className="text-3xl font-semibold tracking-tight text-default-900 sm:text-4xl sm:leading-[1.15]">
             when four people tell four different nights
           </h1>
@@ -369,7 +352,7 @@ export default function Home() {
             Detectr shows what holds up, where stories clash, and how the scene
             likely looked — so a jury can actually follow along.
           </p>
-          <div className="flex flex-wrap gap-3 pt-1">
+          <div className="flex flex-wrap justify-center gap-3 pt-1">
             <Button
               color="primary"
               radius="full"
@@ -399,7 +382,7 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div id="why" className="grid gap-3 sm:grid-cols-3">
           <ActionCard
             color="primary"
             icon="solar:document-add-bold-duotone"
@@ -418,6 +401,32 @@ export default function Home() {
             description="Short clips so everyone can picture that night."
           />
         </div>
+
+        <LinkPrompt
+          value={linkPrompt}
+          onValueChange={setLinkPrompt}
+          onSend={() => {
+            if (linkPrompt.trim()) {
+              setCaseInput((c) => ({
+                ...c,
+                description: linkPrompt.trim(),
+              }));
+              document
+                .getElementById("case-form")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+          onMakeVideo={() => {
+            setGenerateVideos(true);
+            if (linkPrompt.trim()) {
+              setCaseInput((c) => ({
+                ...c,
+                description: linkPrompt.trim(),
+              }));
+            }
+            void loadDemo().then(() => runAnalysis(true));
+          }}
+        />
 
         {error && (
           <Card className="border-small border-danger-300" shadow="sm">
@@ -602,7 +611,6 @@ export default function Home() {
             </h1>
             <p className="truncate text-tiny text-default-500">{pageSub}</p>
           </div>
-          <ThemeSwitcher className="order-last w-full overflow-x-auto sm:order-none sm:w-auto" />
           {pending && (
             <Chip size="sm" color="primary" variant="flat" className="shrink-0">
               Working
