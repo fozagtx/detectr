@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Libre_Franklin, Syne } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
 
-const display = Syne({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const sans = Libre_Franklin({
+const sans = IBM_Plex_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const mono = IBM_Plex_Mono({
@@ -21,9 +16,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Detectr — AI Forensic Agent Society",
+  title: "Detectr",
   description:
-    "Multi-agent witness testimony analysis, physics validation, and scene reconstruction on Qwen Cloud.",
+    "Witness testimony analysis, physics checks, and scene reconstructions.",
 };
 
 export default function RootLayout({
@@ -32,11 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full font-[family-name:var(--font-sans)]">{children}</body>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body className="min-h-screen bg-zinc-100 font-sans text-foreground antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

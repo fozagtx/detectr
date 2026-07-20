@@ -1,0 +1,31 @@
+"use client";
+
+import type { TextAreaProps } from "@heroui/react";
+import React from "react";
+import { Textarea, cn } from "@heroui/react";
+
+const PromptInput = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ classNames = {}, ...props }, ref) => {
+    return (
+      <Textarea
+        ref={ref}
+        aria-label="Ask detective"
+        className="min-h-[40px]"
+        classNames={{
+          ...classNames,
+          label: cn("hidden", classNames?.label),
+          input: cn("py-0", classNames?.input),
+        }}
+        minRows={1}
+        placeholder="Ask about a claim, physics flag, or the scene…"
+        radius="lg"
+        variant="bordered"
+        {...props}
+      />
+    );
+  },
+);
+
+PromptInput.displayName = "PromptInput";
+
+export default PromptInput;

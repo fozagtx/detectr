@@ -1,6 +1,22 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  Input,
+  Progress,
+  Switch,
+  Textarea,
+  cn,
+} from "@heroui/react";
+import { Icon } from "@iconify/react";
+import ActionCard from "@/components/action-card";
+import CellWrapper from "@/components/cell-wrapper";
+import PromptInput from "@/components/prompt-input";
 import type {
   AnalysisResult,
   AppStep,
@@ -22,24 +38,14 @@ function emptyCase(): CaseInput {
     description: "",
     status: "DRAFT",
     createdAt: new Date().toISOString(),
-    witnesses: [
-      { id: "w1", name: "", position: "", statement: "" },
-    ],
+    witnesses: [{ id: "w1", name: "", position: "", statement: "" }],
   };
 }
 
-function verdictColor(v: PhysicsResult["verdict"]) {
-  if (v === "POSSIBLE") return "text-teal-300";
-  if (v === "UNLIKELY") return "text-amber-400";
-  return "text-zinc-400";
-}
-
-function TagChip({ tag }: { tag: string }) {
-  return (
-    <span className="rounded border border-teal-800/60 bg-teal-950/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-teal-300/90">
-      {tag}
-    </span>
-  );
+function verdictChip(v: PhysicsResult["verdict"]) {
+  if (v === "POSSIBLE") return "success" as const;
+  if (v === "UNLIKELY") return "warning" as const;
+  return "default" as const;
 }
 
 export default function Home() {
@@ -49,9 +55,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [chatInput, setChatInput] = useState("");
-  const [chat, setChat] = useState<Array<{ role: "user" | "assistant"; content: string }>>(
-    [],
-  );
+  const [chat, setChat] = useState<
+    Array<{ role: "user" | "assistant"; content: string }>
+  >([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [generateVideos, setGenerateVideos] = useState(true);
 
@@ -116,12 +122,7 @@ export default function Home() {
         setCaseInput(json.case);
         setAnalysis(json.analysis);
         setStep("ANALYSIS");
-        setChat([
-          {
-            role: "assistant",
-            content: json.analysis.report.summary,
-          },
-        ]);
+        setChat([{ role: "assistant", content: json.analysis.report.summary }]);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Analysis failed");
       }
@@ -170,614 +171,696 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0f12] text-zinc-100">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(20,80,80,0.18),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_rgba(120,70,20,0.12),_transparent_45%)]" />
+    <div className="relative min-h-screen overflow-x-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(15,138,82,0.12),_transparent_55%)]" />
 
-      <header className="relative z-10 border-b border-white/5 bg-black/30 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div>
-            <p className="font-[family-name:var(--font-display)] text-xl tracking-[0.18em] text-teal-200 sm:text-2xl">
-              DETECTR
-            </p>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">
-              AI Forensic Tools · LangGraph Agent Society
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={loadDemo}
-              className="rounded border border-teal-700/50 bg-teal-950/50 px-3 py-1.5 text-xs uppercase tracking-wider text-teal-200 transition hover:border-teal-500 hover:bg-teal-900/40"
-            >
-              Load Demo
-            </button>
-            <span className="hidden rounded border border-amber-800/40 bg-amber-950/30 px-2 py-1 text-[10px] uppercase tracking-wider text-amber-300/90 sm:inline">
-              {caseInput.status}
-            </span>
-          </div>
-        </div>
-
-        <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-3 sm:px-6">
-          {STEPS.map((s, i) => {
-            const active = step === s;
-            const canOpen = s === "INPUT" || Boolean(analysis);
-            return (
-              <button
-                key={s}
-                type="button"
-                disabled={!canOpen}
-                onClick={() => {
-                  if (canOpen) setStep(s);
-                }}
-                className={`flex items-center gap-2 rounded px-3 py-2 text-[11px] uppercase tracking-[0.2em] transition ${
-                  active
-                    ? "bg-teal-900/50 text-teal-100"
-                    : "text-zinc-500 hover:text-zinc-300"
-                } ${!canOpen ? "opacity-40" : ""}`}
+      <div className="relative mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
+        {/* Top bar */}
+        <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+          <CardBody className="flex flex-row items-center justify-between gap-3 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex rounded-medium border border-primary-100 bg-primary-50 p-2">
+                <Icon
+                  className="text-primary"
+                  icon="solar:shield-keyhole-bold-duotone"
+                  width={24}
+                />
+              </div>
+              <div>
+                <p className="text-medium font-semibold">Detectr</p>
+                <p className="text-tiny text-default-400">Witness forensics</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Chip size="sm" variant="flat" color="primary">
+                {caseInput.status}
+              </Chip>
+              <Button
+                size="sm"
+                variant="bordered"
+                radius="full"
+                startContent={
+                  <Icon icon="solar:play-circle-linear" width={16} />
+                }
+                onPress={loadDemo}
               >
-                <span className="text-zinc-600">{i + 1}</span>
-                {s}
-              </button>
+                Load demo
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Step chips */}
+        <div className="flex flex-wrap gap-2">
+          {STEPS.map((s) => {
+            const canOpen = s === "INPUT" || Boolean(analysis);
+            const active = step === s;
+            return (
+              <Chip
+                key={s}
+                as="button"
+                type="button"
+                size="sm"
+                variant={active ? "solid" : "flat"}
+                color={active ? "primary" : "default"}
+                className={cn(!canOpen && "opacity-40")}
+                isDisabled={!canOpen}
+                onClick={() => canOpen && setStep(s)}
+              >
+                {s.charAt(0) + s.slice(1).toLowerCase()}
+              </Chip>
             );
           })}
-        </nav>
-      </header>
+        </div>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {/* Hero */}
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Make witness stories checkable
+          </h1>
+          <p className="max-w-xl text-small text-default-500">
+            Enter case details, run the agent team, then review physics scores,
+            scene videos, and a clear report.
+          </p>
+        </div>
+
+        {/* 3 ActionCards */}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <ActionCard
+            icon="solar:document-add-bold-duotone"
+            title="Build the case"
+            description="Names, places, and witness statements."
+            color="primary"
+            onPress={() => setStep("INPUT")}
+          />
+          <ActionCard
+            icon="solar:atom-bold-duotone"
+            title="Run agents"
+            description="Claims, physics, and cross-checks."
+            color={analysis ? "primary" : undefined}
+            onPress={() => (analysis ? setStep("ANALYSIS") : runAnalysis(false))}
+          />
+          <ActionCard
+            icon="solar:chat-round-line-bold-duotone"
+            title="Ask detective"
+            description="Questions grounded in the case file."
+            color={analysis ? "primary" : undefined}
+            onPress={() => analysis && setStep("DETECTIVE")}
+          />
+        </div>
+
+        {/* Error gate */}
         {error && (
-          <div className="mb-6 rounded border border-amber-700/50 bg-amber-950/40 px-4 py-3 text-sm text-amber-200">
-            {error}
-          </div>
+          <Card className="border-small border-danger-300 shadow-sm" shadow="sm">
+            <CardBody className="flex flex-row items-start gap-3 p-4">
+              <div className="flex rounded-medium border border-danger-100 bg-danger-50 p-2">
+                <Icon
+                  className="text-danger"
+                  icon="solar:danger-triangle-bold"
+                  width={22}
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-medium">Something went wrong</p>
+                <p className="text-small text-danger">{error}</p>
+              </div>
+            </CardBody>
+          </Card>
         )}
 
-        {step === "INPUT" && (
-          <section className="space-y-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h1 className="font-[family-name:var(--font-display)] text-3xl text-zinc-50 sm:text-4xl">
-                  New Investigation
-                </h1>
-                <p className="mt-1 font-mono text-xs text-zinc-500">{caseInput.id}</p>
-              </div>
-              <div className="w-full max-w-xs">
-                <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-zinc-500">
-                  <span>Form Completion</span>
-                  <span>{formCompletion}%</span>
-                </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
-                  <div
-                    className="h-full bg-gradient-to-r from-teal-700 to-teal-400 transition-all"
-                    style={{ width: `${formCompletion}%` }}
+        {/* Analyzing gate */}
+        {pending && (
+          <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+            <CardBody className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="flex rounded-medium border border-primary-100 bg-primary-50 p-2">
+                  <Icon
+                    className="text-primary"
+                    icon="solar:cpu-bolt-bold-duotone"
+                    width={22}
                   />
                 </div>
-              </div>
-            </div>
-
-            <div className="grid gap-8 lg:grid-cols-2">
-              <div className="space-y-4">
-                <h2 className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                  Case Information
-                </h2>
-                <Field
-                  label="Case Name"
-                  placeholder="e.g., Oak Street Incident"
-                  value={caseInput.caseName}
-                  onChange={(v) => setCaseInput({ ...caseInput, caseName: v })}
-                />
-                <Field
-                  label="Location"
-                  placeholder="e.g., Oak Street & 5th Avenue"
-                  value={caseInput.location}
-                  onChange={(v) => setCaseInput({ ...caseInput, location: v })}
-                />
-                <Field
-                  label="Date & Time of Incident"
-                  placeholder="e.g., December 15, 2024, approximately 9:15 PM"
-                  value={caseInput.dateTime}
-                  onChange={(v) => setCaseInput({ ...caseInput, dateTime: v })}
-                />
-                <label className="block space-y-1.5">
-                  <span className="text-[11px] uppercase tracking-wider text-zinc-500">
-                    Case Description
-                  </span>
-                  <textarea
-                    rows={5}
-                    value={caseInput.description}
-                    onChange={(e) =>
-                      setCaseInput({ ...caseInput, description: e.target.value })
-                    }
-                    className="w-full resize-y rounded border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 outline-none ring-teal-700/40 placeholder:text-zinc-600 focus:ring-2"
-                    placeholder="Summarize the incident under investigation…"
-                  />
-                </label>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                    Witness Statements
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={addWitness}
-                    className="text-xs text-teal-400 hover:text-teal-200"
-                  >
-                    + Add witness
-                  </button>
-                </div>
-                <div className="max-h-[28rem] space-y-4 overflow-y-auto pr-1">
-                  {caseInput.witnesses.map((w, idx) => (
-                    <div
-                      key={w.id}
-                      className="space-y-3 border border-white/8 bg-white/[0.02] p-4"
-                    >
-                      <p className="text-xs uppercase tracking-wider text-amber-500/80">
-                        Witness {idx + 1}
-                      </p>
-                      <Field
-                        label="Name"
-                        value={w.name}
-                        onChange={(v) => updateWitness(w.id, { name: v })}
-                      />
-                      <Field
-                        label="Position / Location"
-                        value={w.position}
-                        onChange={(v) => updateWitness(w.id, { position: v })}
-                      />
-                      <label className="block space-y-1.5">
-                        <span className="text-[11px] uppercase tracking-wider text-zinc-500">
-                          Statement
-                        </span>
-                        <textarea
-                          rows={4}
-                          value={w.statement}
-                          onChange={(e) =>
-                            updateWitness(w.id, { statement: e.target.value })
-                          }
-                          className="w-full resize-y rounded border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none ring-teal-700/40 focus:ring-2"
-                        />
-                      </label>
-                    </div>
-                  ))}
+                <div>
+                  <p className="text-medium">Agents are working</p>
+                  <p className="text-small text-default-400">
+                    Extracting claims, scoring physics, and drafting the report.
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 border-t border-white/5 pt-6">
-              <label className="flex items-center gap-2 text-xs text-zinc-400">
-                <input
-                  type="checkbox"
-                  checked={generateVideos}
-                  onChange={(e) => setGenerateVideos(e.target.checked)}
-                  className="accent-teal-500"
-                />
-                  Generate Wan scene videos (live DashScope only)
-              </label>
-              <div className="ml-auto flex gap-2">
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => runAnalysis(true)}
-                  className="rounded border border-white/15 px-4 py-2 text-xs uppercase tracking-wider text-zinc-300 hover:bg-white/5 disabled:opacity-50"
-                >
-                  Analyze Demo
-                </button>
-                <button
-                  type="button"
-                  disabled={pending || formCompletion < 50}
-                  onClick={() => runAnalysis(false)}
-                  className="rounded bg-teal-600 px-5 py-2 text-xs uppercase tracking-wider text-white hover:bg-teal-500 disabled:opacity-40"
-                >
-                  {pending ? "Agents working…" : "Run Agent Society"}
-                </button>
-              </div>
-            </div>
-            {pending && (
-              <p className="animate-pulse text-sm text-teal-300/80">
-                ClaimExtractor → PhysicsValidator → CrossReference → Debate →
-                SceneDirector → Visualizer → Detective (LangGraph)…
-              </p>
-            )}
-          </section>
+              <Button color="primary" radius="full" isLoading>
+                Running…
+              </Button>
+            </CardBody>
+          </Card>
         )}
 
-        {step === "ANALYSIS" && analysis && (
-          <section className="space-y-10">
-            <div>
-              <h1 className="font-[family-name:var(--font-display)] text-3xl">
-                Claim Extraction & Physics
-              </h1>
-              <p className="mt-2 text-sm text-zinc-400">
-                {analysis.report.totalClaims} claims from{" "}
-                {analysis.report.totalWitnesses} witnesses ·{" "}
-                {Object.entries(analysis.report.claimBreakdown)
-                  .map(([k, v]) => `${v} ${k}`)
-                  .join(", ")}
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {analysis.claims.map((claim) => (
-                <div
-                  key={claim.id}
-                  className="border border-white/8 bg-black/30 p-3"
-                >
-                  <div className="mb-2 flex flex-wrap gap-1">
-                    {claim.tags.map((t) => (
-                      <TagChip key={t} tag={t} />
-                    ))}
-                    {Object.entries(claim.metadata).map(([k, v]) =>
-                      v ? (
-                        <span
-                          key={k}
-                          className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-400"
-                        >
-                          {k}: {v}
-                        </span>
-                      ) : null,
-                    )}
-                  </div>
-                  <p className="text-sm text-zinc-200">{claim.text}</p>
-                  <p className="mt-1 text-[11px] text-zinc-500">{claim.witnessName}</p>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <h2 className="mb-4 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Physics Validation · Vision Science
-              </h2>
-              <div className="space-y-8">
-                {caseInput.witnesses.map((w) => {
-                  const wClaims = claimsByWitness(w.id);
-                  if (!wClaims.length) return null;
-                  const score = witnessPhysicsScore(w.id, analysis.claims, analysis.physics);
-                  return (
-                    <div key={w.id}>
-                      <div className="mb-2 flex items-baseline justify-between">
-                        <h3 className="text-lg text-zinc-100">{w.name}</h3>
-                        <p className="font-mono text-sm text-teal-300">
-                          Physics Score: {score}%
-                        </p>
-                      </div>
-                      <div className="overflow-x-auto border border-white/8">
-                        <table className="w-full min-w-[640px] text-left text-sm">
-                          <thead className="bg-white/[0.03] text-[10px] uppercase tracking-wider text-zinc-500">
-                            <tr>
-                              <th className="px-3 py-2">Claim</th>
-                              <th className="px-3 py-2">Verdict</th>
-                              <th className="px-3 py-2">Conf.</th>
-                              <th className="px-3 py-2">Reason</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {wClaims.map((c) => {
-                              const p = physicsFor(c.id);
-                              return (
-                                <tr key={c.id} className="border-t border-white/5">
-                                  <td className="px-3 py-2 text-zinc-300">{c.text}</td>
-                                  <td
-                                    className={`px-3 py-2 font-mono text-xs ${verdictColor(p?.verdict ?? "UNCERTAIN")}`}
-                                  >
-                                    {p?.verdict ?? "—"}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-zinc-400">
-                                    {p?.confidence ?? "—"}%
-                                  </td>
-                                  <td className="px-3 py-2 text-xs text-zinc-400">
-                                    {p?.reason}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="mb-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Agent Debate
-              </h2>
-              <div className="space-y-3">
-                {analysis.debates.map((d) => (
-                  <div
-                    key={d.id}
-                    className="border border-amber-900/40 bg-amber-950/20 p-4"
-                  >
-                    <p className="text-sm font-medium text-amber-200">{d.trigger}</p>
-                    <p className="mt-2 text-xs text-zinc-400">{d.physicsPosition}</p>
-                    <p className="mt-1 text-xs text-zinc-400">{d.detectivePosition}</p>
-                    <p className="mt-2 text-xs text-teal-300">{d.resolution}</p>
-                  </div>
-                ))}
-                {!analysis.debates.length && (
-                  <p className="text-sm text-zinc-500">No physics conflicts required debate.</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="mb-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Cross-Reference
-              </h2>
-              <div className="grid gap-3 md:grid-cols-2">
-                {analysis.crossRef.map((x) => (
-                  <div key={x.id} className="border border-white/8 bg-black/30 p-4">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span
-                        className={`text-[10px] uppercase tracking-wider ${
-                          x.type === "agreement"
-                            ? "text-teal-400"
-                            : x.type === "contradiction"
-                              ? "text-amber-400"
-                              : "text-zinc-400"
-                        }`}
-                      >
-                        {x.type}
-                      </span>
-                      <span className="text-sm text-zinc-200">{x.topic}</span>
-                    </div>
-                    <p className="text-xs text-zinc-400">{x.summary}</p>
-                    <p className="mt-2 text-[10px] text-zinc-600">
-                      {x.witnessNames.join(" · ")}
+        {/* INPUT */}
+        {step === "INPUT" && !pending && (
+          <>
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start gap-1 px-4 pb-0 pt-4">
+                <div className="flex w-full items-center justify-between gap-3">
+                  <div>
+                    <p className="text-large font-medium">Case file</p>
+                    <p className="font-mono text-tiny text-default-400">
+                      {caseInput.id}
                     </p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border border-white/8 bg-black/20 p-4">
-              <h2 className="mb-2 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Agent Log
-              </h2>
-              <ul className="space-y-1 font-mono text-[11px] text-zinc-500">
-                {analysis.agentLog.map((line, i) => (
-                  <li key={i}>{line}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        )}
-
-        {step === "VIDEOS" && analysis && (
-          <section className="space-y-6">
-            <div>
-              <h1 className="font-[family-name:var(--font-display)] text-3xl">
-                Scene Reconstructions
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-                SceneDirector storyboards key beats; Visualizer calls Wan/HappyHorse on
-                Alibaba DashScope and optionally stores MP4s on OSS.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {analysis.videos.map((v) => (
-                <div key={v.id} className="overflow-hidden border border-white/8 bg-black/40">
-                  <div className="aspect-video bg-gradient-to-br from-zinc-900 to-teal-950/40">
-                    {v.url ? (
-                      <video
-                        src={v.url}
-                        controls
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-amber-500/80">
-                          {v.status}
-                        </p>
-                        <p className="text-sm text-zinc-300">{v.title}</p>
-                        {v.error && (
-                          <p className="text-xs text-amber-400">{v.error}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2 p-4">
-                    <h3 className="text-sm text-zinc-100">{v.title}</h3>
-                    <p className="text-xs leading-relaxed text-zinc-500">{v.prompt}</p>
-                    {v.error && (
-                      <p className="text-xs text-amber-400">{v.error}</p>
-                    )}
+                  <div className="w-28">
+                    <p className="mb-1 text-right text-tiny text-default-400">
+                      {formCompletion}%
+                    </p>
+                    <Progress
+                      aria-label="Form completion"
+                      size="sm"
+                      color="primary"
+                      value={formCompletion}
+                    />
                   </div>
                 </div>
-              ))}
+              </CardHeader>
+              <CardBody className="flex flex-col gap-4 p-4">
+                <Input
+                  label="Case name"
+                  placeholder="e.g. Oak Street Incident"
+                  variant="bordered"
+                  value={caseInput.caseName}
+                  onValueChange={(v) =>
+                    setCaseInput({ ...caseInput, caseName: v })
+                  }
+                  startContent={
+                    <Icon
+                      className="text-default-400"
+                      icon="solar:folder-with-files-linear"
+                      width={18}
+                    />
+                  }
+                />
+                <Input
+                  label="Location"
+                  placeholder="e.g. Oak Street & 5th Avenue"
+                  variant="bordered"
+                  value={caseInput.location}
+                  onValueChange={(v) =>
+                    setCaseInput({ ...caseInput, location: v })
+                  }
+                  startContent={
+                    <Icon
+                      className="text-default-400"
+                      icon="solar:map-point-linear"
+                      width={18}
+                    />
+                  }
+                />
+                <Input
+                  label="Date and time"
+                  placeholder="e.g. December 15, 2024, about 9:15 PM"
+                  variant="bordered"
+                  value={caseInput.dateTime}
+                  onValueChange={(v) =>
+                    setCaseInput({ ...caseInput, dateTime: v })
+                  }
+                  startContent={
+                    <Icon
+                      className="text-default-400"
+                      icon="solar:calendar-linear"
+                      width={18}
+                    />
+                  }
+                />
+                <Textarea
+                  label="Case description"
+                  placeholder="What happened, in plain language…"
+                  variant="bordered"
+                  minRows={3}
+                  value={caseInput.description}
+                  onValueChange={(v) =>
+                    setCaseInput({ ...caseInput, description: v })
+                  }
+                />
+                <CellWrapper>
+                  <div>
+                    <p>Generate scene videos</p>
+                    <p className="text-small text-default-500">
+                      Live Wan clips. Leave off for a faster analysis pass.
+                    </p>
+                  </div>
+                  <Switch
+                    isSelected={generateVideos}
+                    onValueChange={setGenerateVideos}
+                    color="primary"
+                  />
+                </CellWrapper>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button
+                    color="primary"
+                    radius="full"
+                    isDisabled={formCompletion < 50}
+                    startContent={
+                      <Icon icon="solar:play-bold" width={18} />
+                    }
+                    onPress={() => runAnalysis(false)}
+                  >
+                    Run agents
+                  </Button>
+                  <Button
+                    variant="bordered"
+                    radius="full"
+                    size="sm"
+                    startContent={
+                      <Icon icon="solar:magic-stick-3-linear" width={16} />
+                    }
+                    onPress={() => runAnalysis(true)}
+                  >
+                    Analyze demo
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+
+            <div className="flex items-center justify-between">
+              <p className="text-small text-default-500">Witnesses</p>
+              <Button
+                size="sm"
+                variant="light"
+                radius="full"
+                startContent={
+                  <Icon icon="solar:user-plus-linear" width={16} />
+                }
+                onPress={addWitness}
+              >
+                Add witness
+              </Button>
             </div>
-          </section>
+
+            {caseInput.witnesses.map((w, idx) => (
+              <Card
+                key={w.id}
+                className="border-small border-default-200 shadow-sm"
+                shadow="sm"
+              >
+                <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                  <p className="text-medium">Witness {idx + 1}</p>
+                  <p className="text-small text-default-500">
+                    Who they are and what they saw
+                  </p>
+                </CardHeader>
+                <CardBody className="flex flex-col gap-3 p-4">
+                  <Input
+                    label="Name"
+                    variant="bordered"
+                    value={w.name}
+                    onValueChange={(v) => updateWitness(w.id, { name: v })}
+                    startContent={
+                      <Icon
+                        className="text-default-400"
+                        icon="solar:user-linear"
+                        width={18}
+                      />
+                    }
+                  />
+                  <Input
+                    label="Position / location"
+                    variant="bordered"
+                    value={w.position}
+                    onValueChange={(v) =>
+                      updateWitness(w.id, { position: v })
+                    }
+                    startContent={
+                      <Icon
+                        className="text-default-400"
+                        icon="solar:eye-linear"
+                        width={18}
+                      />
+                    }
+                  />
+                  <Textarea
+                    label="Statement"
+                    variant="bordered"
+                    minRows={3}
+                    value={w.statement}
+                    onValueChange={(v) =>
+                      updateWitness(w.id, { statement: v })
+                    }
+                  />
+                </CardBody>
+              </Card>
+            ))}
+          </>
         )}
 
-        {step === "REPORT" && analysis && (
-          <section className="space-y-8">
-            <div>
-              <h1 className="font-[family-name:var(--font-display)] text-3xl">
-                Case Report
-              </h1>
-              <p className="mt-2 text-sm text-teal-300/90">{analysis.report.summary}</p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Stat label="Witnesses" value={String(analysis.report.totalWitnesses)} />
-              <Stat label="Claims" value={String(analysis.report.totalClaims)} />
-              <Stat
-                label="Physics Flags"
-                value={String(analysis.report.physicsFlags)}
-              />
-            </div>
-
-            <div>
-              <h2 className="mb-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Key Findings
-              </h2>
-              <ul className="space-y-2">
-                {analysis.report.keyFindings.map((f, i) => (
-                  <li
-                    key={i}
-                    className="border-l-2 border-teal-700 pl-3 text-sm text-zinc-300"
+        {/* ANALYSIS */}
+        {step === "ANALYSIS" && analysis && (
+          <>
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                <p className="text-large font-medium">Claims</p>
+                <p className="text-small text-default-500">
+                  {analysis.report.totalClaims} from{" "}
+                  {analysis.report.totalWitnesses} witnesses
+                </p>
+              </CardHeader>
+              <CardBody className="grid gap-3 p-4 sm:grid-cols-2">
+                {analysis.claims.map((claim) => (
+                  <Card
+                    key={claim.id}
+                    className="border-small border-default-200"
+                    shadow="none"
                   >
-                    {f}
-                  </li>
+                    <CardBody className="gap-2 p-3">
+                      <div className="flex flex-wrap gap-1">
+                        {claim.tags.map((t) => (
+                          <Chip key={t} size="sm" variant="flat">
+                            {t}
+                          </Chip>
+                        ))}
+                      </div>
+                      <p className="text-small">{claim.text}</p>
+                      <p className="text-tiny text-default-400">
+                        {claim.witnessName}
+                      </p>
+                    </CardBody>
+                  </Card>
                 ))}
-              </ul>
-            </div>
+              </CardBody>
+            </Card>
 
-            <div>
-              <h2 className="mb-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Narrative
-              </h2>
-              <p className="max-w-3xl text-sm leading-relaxed text-zinc-300">
-                {analysis.report.narrative}
-              </p>
-            </div>
-
-            <div>
-              <h2 className="mb-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-                Agent Society vs Single-Agent Baseline
-              </h2>
-              <div className="overflow-x-auto border border-white/8">
-                <table className="w-full min-w-[480px] text-left text-sm">
-                  <thead className="bg-white/[0.03] text-[10px] uppercase tracking-wider text-zinc-500">
-                    <tr>
-                      <th className="px-3 py-2">Metric</th>
-                      <th className="px-3 py-2">Multi-Agent</th>
-                      <th className="px-3 py-2">Single-Agent</th>
-                      <th className="px-3 py-2">Delta</th>
-                    </tr>
-                  </thead>
-                  <tbody className="font-mono text-xs">
-                    {(
-                      [
-                        ["Claims extracted", "claimsExtracted"],
-                        ["Conflicts found", "conflictsFound"],
-                        ["Physics flags", "physicsFlags"],
-                        ["Agreements found", "agreementsFound"],
-                      ] as const
-                    ).map(([label, key]) => {
-                      const m = analysis.baseline.multi[key];
-                      const s = analysis.baseline.single?.[key] ?? 0;
+            {caseInput.witnesses.map((w) => {
+              const wClaims = claimsByWitness(w.id);
+              if (!wClaims.length) return null;
+              const score = witnessPhysicsScore(
+                w.id,
+                analysis.claims,
+                analysis.physics,
+              );
+              return (
+                <Card
+                  key={w.id}
+                  className="border-small border-default-200 shadow-sm"
+                  shadow="sm"
+                >
+                  <CardHeader className="flex flex-row items-center justify-between px-4 pb-0 pt-4">
+                    <div>
+                      <p className="text-medium">{w.name}</p>
+                      <p className="text-small text-default-500">
+                        Physics checks
+                      </p>
+                    </div>
+                    <Chip color="primary" variant="flat">
+                      {score}%
+                    </Chip>
+                  </CardHeader>
+                  <CardBody className="flex flex-col gap-2 p-4">
+                    {wClaims.map((c) => {
+                      const p = physicsFor(c.id);
                       return (
-                        <tr key={key} className="border-t border-white/5">
-                          <td className="px-3 py-2 font-sans text-zinc-400">{label}</td>
-                          <td className="px-3 py-2 text-teal-300">{m}</td>
-                          <td className="px-3 py-2 text-zinc-500">{s}</td>
-                          <td className="px-3 py-2 text-amber-300">
-                            {m - s >= 0 ? `+${m - s}` : m - s}
-                          </td>
-                        </tr>
+                        <CellWrapper key={c.id} className="items-start">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-small">{c.text}</p>
+                            <p className="mt-1 text-tiny text-default-400">
+                              {p?.reason}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            <Chip
+                              size="sm"
+                              color={verdictChip(p?.verdict ?? "UNCERTAIN")}
+                              variant="flat"
+                            >
+                              {p?.verdict ?? "—"}
+                            </Chip>
+                            <p className="font-mono text-tiny text-default-400">
+                              {p?.confidence ?? "—"}%
+                            </p>
+                          </div>
+                        </CellWrapper>
                       );
                     })}
-                    <tr className="border-t border-white/5">
-                      <td className="px-3 py-2 font-sans text-zinc-400">
-                        Wall time (ms)
-                      </td>
-                      <td className="px-3 py-2 text-teal-300">
-                        {analysis.baseline.multi.wallTimeMs}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-500">
-                        {analysis.baseline.single?.wallTimeMs ?? "—"}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-600">—</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <p className="mt-2 text-xs text-zinc-500">
-                Track 3 measurable gain: specialized agents recover more claims and
-                contradictions than a single monolithic pass on the same case file.
-              </p>
-            </div>
-          </section>
+                  </CardBody>
+                </Card>
+              );
+            })}
+
+            {analysis.debates.length > 0 && (
+              <Card className="border-small border-warning-500 shadow-sm" shadow="sm">
+                <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                  <p className="text-large font-medium">Agent debate</p>
+                  <p className="text-small text-default-500">
+                    Where physics and testimony pull apart
+                  </p>
+                </CardHeader>
+                <CardBody className="flex flex-col gap-3 p-4">
+                  {analysis.debates.map((d) => (
+                    <CellWrapper key={d.id} className="items-start">
+                      <div>
+                        <p className="text-small font-medium">{d.trigger}</p>
+                        <p className="mt-1 text-tiny text-default-500">
+                          {d.physicsPosition}
+                        </p>
+                        <p className="text-tiny text-default-500">
+                          {d.detectivePosition}
+                        </p>
+                        <p className="mt-2 text-tiny text-primary">
+                          {d.resolution}
+                        </p>
+                      </div>
+                    </CellWrapper>
+                  ))}
+                </CardBody>
+              </Card>
+            )}
+
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                <p className="text-large font-medium">Cross-reference</p>
+                <p className="text-small text-default-500">
+                  Agreements, conflicts, and one-off details
+                </p>
+              </CardHeader>
+              <CardBody className="grid gap-3 p-4 sm:grid-cols-2">
+                {analysis.crossRef.map((x) => (
+                  <ActionCard
+                    key={x.id}
+                    isPressable={false}
+                    icon={
+                      x.type === "agreement"
+                        ? "solar:check-circle-bold-duotone"
+                        : x.type === "contradiction"
+                          ? "solar:danger-triangle-bold-duotone"
+                          : "solar:star-bold-duotone"
+                    }
+                    color={
+                      x.type === "agreement"
+                        ? "primary"
+                        : x.type === "contradiction"
+                          ? "warning"
+                          : undefined
+                    }
+                    title={x.topic}
+                    description={`${x.summary} · ${x.witnessNames.join(", ")}`}
+                  />
+                ))}
+              </CardBody>
+            </Card>
+          </>
         )}
 
-        {step === "DETECTIVE" && analysis && (
-          <section className="mx-auto flex max-w-3xl flex-col gap-4">
+        {/* VIDEOS */}
+        {step === "VIDEOS" && analysis && (
+          <>
             <div>
-              <h1 className="font-[family-name:var(--font-display)] text-3xl">
-                Detective
-              </h1>
-              <p className="mt-2 text-sm text-zinc-400">
-                Ask about physics flags, conflicts, or how the scene was reconstructed.
+              <h2 className="text-large font-medium">Scene reconstructions</h2>
+              <p className="text-small text-default-500">
+                Live clips from the storyboard
               </p>
             </div>
-            <div className="flex min-h-[24rem] flex-col gap-3 border border-white/8 bg-black/30 p-4">
-              <div className="flex-1 space-y-3 overflow-y-auto">
+            {analysis.videos.length === 0 ? (
+              <Card className="border-dashed border-default-200 shadow-none">
+                <CardBody className="flex flex-col items-center gap-2 py-10 text-center">
+                  <Icon
+                    className="text-default-300"
+                    icon="solar:videocamera-record-bold-duotone"
+                    width={40}
+                  />
+                  <p className="text-small text-default-500">
+                    No videos for this run. Turn on scene videos and analyze again.
+                  </p>
+                </CardBody>
+              </Card>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {analysis.videos.map((v) => (
+                  <Card
+                    key={v.id}
+                    className="overflow-hidden border-small border-default-200 shadow-sm"
+                    shadow="sm"
+                  >
+                    <div className="aspect-video bg-default-100">
+                      {v.url ? (
+                        <video
+                          src={v.url}
+                          controls
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full flex-col items-center justify-center gap-2 p-4">
+                          <Chip size="sm" variant="flat">
+                            {v.status}
+                          </Chip>
+                          <p className="text-center text-small">{v.title}</p>
+                        </div>
+                      )}
+                    </div>
+                    <CardBody className="gap-1 p-4">
+                      <p className="text-medium">{v.title}</p>
+                      <p className="text-tiny text-default-400">{v.prompt}</p>
+                    </CardBody>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* REPORT */}
+        {step === "REPORT" && analysis && (
+          <>
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                <p className="text-large font-medium">Case report</p>
+                <p className="text-small text-default-500">
+                  {analysis.report.summary}
+                </p>
+              </CardHeader>
+              <CardBody className="grid gap-3 p-4 sm:grid-cols-3">
+                {[
+                  ["Witnesses", analysis.report.totalWitnesses],
+                  ["Claims", analysis.report.totalClaims],
+                  ["Physics flags", analysis.report.physicsFlags],
+                ].map(([label, value]) => (
+                  <CellWrapper key={String(label)} className="flex-col items-start">
+                    <p className="text-tiny text-default-400">{label}</p>
+                    <p className="font-mono text-2xl text-primary">{value}</p>
+                  </CellWrapper>
+                ))}
+              </CardBody>
+            </Card>
+
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                <p className="text-large font-medium">Key findings</p>
+              </CardHeader>
+              <CardBody className="flex flex-col gap-2 p-4">
+                {analysis.report.keyFindings.map((f, i) => (
+                  <CellWrapper key={i} className="items-start">
+                    <p className="text-small">{f}</p>
+                  </CellWrapper>
+                ))}
+              </CardBody>
+            </Card>
+
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                <p className="text-large font-medium">Narrative</p>
+              </CardHeader>
+              <CardBody className="p-4">
+                <p className="text-small leading-relaxed text-default-600">
+                  {analysis.report.narrative}
+                </p>
+              </CardBody>
+            </Card>
+
+            <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+              <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+                <p className="text-large font-medium">Agent team vs one model</p>
+                <p className="text-small text-default-500">
+                  Same case, two approaches
+                </p>
+              </CardHeader>
+              <CardBody className="flex flex-col gap-2 p-4">
+                {(
+                  [
+                    ["Claims", "claimsExtracted"],
+                    ["Conflicts", "conflictsFound"],
+                    ["Physics flags", "physicsFlags"],
+                    ["Agreements", "agreementsFound"],
+                  ] as const
+                ).map(([label, key]) => {
+                  const m = analysis.baseline.multi[key];
+                  const s = analysis.baseline.single?.[key] ?? 0;
+                  return (
+                    <CellWrapper key={key}>
+                      <p className="text-small">{label}</p>
+                      <div className="flex items-center gap-3 font-mono text-tiny">
+                        <span className="text-primary">Team {m}</span>
+                        <span className="text-default-400">Solo {s}</span>
+                        <Chip size="sm" variant="flat" color="warning">
+                          {m - s >= 0 ? `+${m - s}` : m - s}
+                        </Chip>
+                      </div>
+                    </CellWrapper>
+                  );
+                })}
+              </CardBody>
+            </Card>
+          </>
+        )}
+
+        {/* DETECTIVE */}
+        {step === "DETECTIVE" && analysis && (
+          <Card className="border-small border-default-200 shadow-sm" shadow="sm">
+            <CardHeader className="flex flex-col items-start px-4 pb-0 pt-4">
+              <p className="text-large font-medium">Detective</p>
+              <p className="text-small text-default-500">
+                Ask about flags, conflicts, or what the scene shows
+              </p>
+            </CardHeader>
+            <CardBody className="flex flex-col gap-4 p-4">
+              <div className="flex max-h-80 flex-col gap-3 overflow-y-auto">
                 {chat.map((m, i) => (
                   <div
                     key={i}
-                    className={`max-w-[90%] rounded px-3 py-2 text-sm ${
+                    className={cn(
+                      "max-w-[90%] rounded-large px-3 py-2 text-small",
                       m.role === "user"
-                        ? "ml-auto bg-teal-900/40 text-teal-50"
-                        : "bg-white/5 text-zinc-300"
-                    }`}
+                        ? "ml-auto bg-primary text-primary-foreground"
+                        : "bg-content2 text-default-700",
+                    )}
                   >
                     {m.content}
                   </div>
                 ))}
                 {chatBusy && (
-                  <p className="animate-pulse text-xs text-zinc-500">Detective is thinking…</p>
+                  <p className="text-tiny text-default-400">Thinking…</p>
                 )}
               </div>
-              <div className="flex gap-2">
-                <input
+              <div className="flex items-end gap-2">
+                <PromptInput
                   value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendChat()}
-                  placeholder="Why was the scar claim flagged unlikely?"
-                  className="flex-1 rounded border border-white/10 bg-black/50 px-3 py-2 text-sm outline-none ring-teal-700/40 focus:ring-2"
+                  onValueChange={setChatInput}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void sendChat();
+                    }
+                  }}
+                  className="flex-1"
                 />
-                <button
-                  type="button"
-                  disabled={chatBusy || !chatInput.trim()}
-                  onClick={sendChat}
-                  className="rounded bg-teal-600 px-4 py-2 text-xs uppercase tracking-wider text-white disabled:opacity-40"
+                <Button
+                  isIconOnly
+                  color="primary"
+                  radius="full"
+                  isDisabled={chatBusy || !chatInput.trim()}
+                  aria-label="Send"
+                  onPress={sendChat}
                 >
-                  Ask
-                </button>
+                  <Icon icon="solar:arrow-up-bold" width={18} />
+                </Button>
               </div>
-            </div>
-          </section>
+            </CardBody>
+          </Card>
         )}
-      </main>
-
-      <footer className="relative z-10 border-t border-white/5 py-6 text-center text-[10px] uppercase tracking-[0.25em] text-zinc-600">
-        Detectr · Next.js + LangChain/LangGraph · Qwen Cloud · Track 3 Agent Society
-      </footer>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</span>
-      <input
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none ring-teal-700/40 placeholder:text-zinc-600 focus:ring-2"
-      />
-    </label>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-white/8 bg-black/30 p-4">
-      <p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
-      <p className="mt-1 font-mono text-2xl text-teal-300">{value}</p>
+      </div>
     </div>
   );
 }
