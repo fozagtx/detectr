@@ -1,9 +1,10 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
+/** Token Plan OpenAI-compatible endpoint (use with sk-sp-… keys). */
 const BASE_URL =
   process.env.QWEN_BASE_URL ??
-  "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
+  "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1";
 
 export const QWEN_MODEL = process.env.QWEN_MODEL ?? "qwen3.7-plus";
 
