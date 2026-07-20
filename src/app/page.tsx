@@ -120,6 +120,8 @@ export default function Home() {
   const [runState, setRunState] = useState<"idle" | "running" | "paused">(
     "idle",
   );
+  /** Once true, stay in app shell — Pause/Stop must NOT bounce to landing */
+  const [shellOpen, setShellOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chat, setChat] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
@@ -131,10 +133,12 @@ export default function Home() {
   const analyzeAbort = useRef<AbortController | null>(null);
   const chatAbort = useRef<AbortController | null>(null);
   const resumeDemo = useRef(false);
+  /** Protects against abort races setting idle after Pause */
+  const runIntent = useRef<string>("idle");
 
   const pending = runState === "running";
   const paused = runState === "paused";
-  const inApp = Boolean(analysis) || runState !== "idle";
+  const inApp = shellOpen || Boolean(analysis) || runState !== "idle";
   const stepIndex = STEPS.indexOf(step);
 
   const formCompletion = useMemo(() => {
@@ -183,15 +187,19 @@ export default function Home() {
     setChat([]);
     setError(null);
     setStep("INPUT");
+    setShellOpen(true);
   }
 
   function pauseRun() {
+    runIntent.current = "paused";
     analyzeAbort.current?.abort();
     analyzeAbort.current = null;
     setRunState("paused");
+    setShellOpen(true);
   }
 
   function stopAll() {
+    runIntent.current = "stopped";
     analyzeAbort.current?.abort();
     analyzeAbort.current = null;
     chatAbort.current?.abort();
@@ -199,6 +207,9 @@ export default function Home() {
     setRunState("idle");
     setChatBusy(false);
     setError(null);
+    // Stay in app shell — only "New case" returns to landing
+    setShellOpen(true);
+    setStep("INPUT");
   }
 
   function resumeRun() {
@@ -210,11 +221,13 @@ export default function Home() {
     const ac = new AbortController();
     analyzeAbort.current = ac;
     resumeDemo.current = useDemo;
+    runIntent.current = "running";
     setError(null);
+    setShellOpen(true);
     setRunState("running");
 
-    // Sample / Review sample: text agents only — videos make Vercel time out
-    const wantVideos = opts?.videos ?? (useDemo ? false : generateVideos);
+    // Videos optional (slow/expensive). Agents always live Qwen — never mocked.
+    const wantVideos = opts?.videos ?? generateVideos;
 
     try {
       const res = await fetch("/api/analyze", {
@@ -224,26 +237,41 @@ export default function Home() {
         body: JSON.stringify({
           useDemo,
           case: useDemo ? undefined : caseInput,
-          runBaseline: !useDemo,
+          runBaseline: true,
           generateVideos: wantVideos,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Could not review this case");
+      if (runIntent.current === "paused" || runIntent.current === "stopped") {
+        return;
+      }
       setCaseInput(json.case);
       setAnalysis(json.analysis);
       setStep("ANALYSIS");
       setChat([{ role: "assistant", content: json.analysis.report.summary }]);
+      runIntent.current = "idle";
       setRunState("idle");
     } catch (e) {
-      if (ac.signal.aborted) return;
+      if (runIntent.current === "paused") {
+        setRunState("paused");
+        setShellOpen(true);
+        return;
+      }
+      if (runIntent.current === "stopped" || ac.signal.aborted) {
+        setRunState("idle");
+        setShellOpen(true);
+        return;
+      }
       const msg = e instanceof Error ? e.message : "Could not review this case";
       setError(
         /failed to fetch|networkerror|timeout/i.test(msg)
           ? "Review timed out or lost connection. Turn videos off and try again."
           : msg,
       );
+      runIntent.current = "idle";
       setRunState("idle");
+      setShellOpen(true);
     } finally {
       if (analyzeAbort.current === ac) analyzeAbort.current = null;
     }
@@ -384,6 +412,8 @@ export default function Home() {
             setCaseInput(emptyCase());
             setChat([]);
             setStep("INPUT");
+            setShellOpen(false);
+            runIntent.current = "idle";
           }}
         >
           New case
@@ -452,7 +482,10 @@ export default function Home() {
                 className="border-2 border-foreground bg-background font-medium"
                 onPress={() => {
                   setGenerateVideos(false);
-                  void runAnalysis(true, { videos: false });
+                  setShellOpen(true);
+                  void loadDemo().then(() =>
+                    runAnalysis(true, { videos: false }),
+                  );
                 }}
               >
                 Review sample
@@ -802,7 +835,7 @@ export default function Home() {
               </Card>
             )}
 
-            {step === "INPUT" && runState === "idle" && (
+            {step === "INPUT" && runState !== "running" && (
               <>
                 <Card className="border-small border-default-200" shadow="sm">
                   <CardHeader className="flex flex-col items-start gap-1 px-5 pb-0 pt-5">
