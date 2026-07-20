@@ -1,76 +1,99 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" role="img" aria-label="Detectr architecture diagram">
-  <rect width="1000" height="620" fill="#0B0F14"/>
-  <text x="40" y="44" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="24" font-weight="700">DETECTR - System Architecture</text>
-  <text x="40" y="70" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="13">Global AI Hackathon with Qwen Cloud · Track 3: Agent Society</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 720" role="img" aria-label="Detectr architecture diagram">
+  <rect width="1000" height="720" fill="#0B0F14"/>
+  <text x="40" y="40" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="22" font-weight="700">DETECTR — System Architecture</text>
+  <text x="40" y="64" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="13">Global AI Hackathon with Qwen Cloud · Track 3: Agent Society</text>
 
-  <!-- Frontend -->
-  <rect x="40" y="100" width="200" height="88" fill="#141A22" stroke="#F2EDE4" stroke-width="2"/>
-  <text x="140" y="136" text-anchor="middle" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Frontend</text>
-  <text x="140" y="158" text-anchor="middle" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Next.js App Router</text>
-  <text x="140" y="176" text-anchor="middle" fill="#71717A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">HeroUI · Brutalism UI</text>
+  <!-- FE -->
+  <rect x="220" y="88" width="560" height="52" fill="#141A22" stroke="#F2EDE4" stroke-width="2"/>
+  <text x="500" y="120" text-anchor="middle" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Frontend · Next.js + HeroUI Brutalism</text>
+
+  <!-- arrow FE ? API -->
+  <line x1="500" y1="140" x2="500" y2="168" stroke="#52525B" stroke-width="2"/>
+  <polygon points="500,176 494,166 506,166" fill="#52525B"/>
 
   <!-- API -->
-  <rect x="280" y="100" width="220" height="88" fill="#141A22" stroke="#F2EDE4" stroke-width="2"/>
-  <text x="390" y="136" text-anchor="middle" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Backend API</text>
-  <text x="390" y="158" text-anchor="middle" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">/api/analyze · /api/detective</text>
-  <text x="390" y="176" text-anchor="middle" fill="#71717A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">/api/demo</text>
+  <rect x="180" y="176" width="640" height="52" fill="#141A22" stroke="#F2EDE4" stroke-width="2"/>
+  <text x="500" y="208" text-anchor="middle" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Backend · /api/analyze · /api/detective · /api/demo</text>
 
-  <!-- Orchestrator -->
-  <rect x="540" y="100" width="240" height="88" fill="#141A22" stroke="#F0E28A" stroke-width="2"/>
-  <text x="660" y="136" text-anchor="middle" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">LangGraph Orchestrator</text>
-  <text x="660" y="158" text-anchor="middle" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Agent Society StateGraph</text>
-  <text x="660" y="176" text-anchor="middle" fill="#71717A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">src/agents/orchestrator.ts</text>
+  <!-- arrow API ? ORCH -->
+  <line x1="500" y1="228" x2="500" y2="256" stroke="#52525B" stroke-width="2"/>
+  <polygon points="500,264 494,254 506,254" fill="#52525B"/>
 
-  <!-- Store -->
-  <rect x="820" y="100" width="140" height="88" fill="#141A22" stroke="#F2EDE4" stroke-width="2"/>
-  <text x="890" y="140" text-anchor="middle" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Case Store</text>
-  <text x="890" y="162" text-anchor="middle" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">memory + /tmp</text>
-  <text x="890" y="178" text-anchor="middle" fill="#71717A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">JSON cases</text>
+  <!-- ORCH -->
+  <rect x="160" y="264" width="520" height="52" fill="#141A22" stroke="#F0E28A" stroke-width="2"/>
+  <text x="420" y="296" text-anchor="middle" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">LangGraph Orchestrator · Agent Society StateGraph</text>
 
-  <line x1="240" y1="144" x2="280" y2="144" stroke="#52525B" stroke-width="2"/>
-  <line x1="500" y1="144" x2="540" y2="144" stroke="#52525B" stroke-width="2"/>
-  <line x1="780" y1="144" x2="820" y2="144" stroke="#52525B" stroke-width="2"/>
+  <!-- STORE (right of ORCH) -->
+  <rect x="720" y="264" width="240" height="52" fill="#141A22" stroke="#F2EDE4" stroke-width="2" rx="18"/>
+  <text x="840" y="286" text-anchor="middle" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="13" font-weight="700">Case Store</text>
+  <text x="840" y="304" text-anchor="middle" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">memory + /tmp</text>
+  <line x1="680" y1="290" x2="720" y2="290" stroke="#52525B" stroke-width="2"/>
+  <polygon points="720,290 710,284 710,296" fill="#52525B"/>
 
-  <!-- Agents row -->
-  <text x="40" y="230" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="13" font-weight="700">Agent Society pipeline</text>
-  <rect x="40" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="95" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Extractor</text>
-  <rect x="160" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="215" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Physics</text>
-  <rect x="280" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="335" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">CrossRef</text>
-  <rect x="400" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="455" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Debate</text>
-  <rect x="520" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="575" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Director</text>
-  <rect x="640" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="695" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Visualizer</text>
-  <rect x="760" y="244" width="110" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="815" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Detective</text>
-  <rect x="880" y="244" width="80" height="52" fill="#1A222C" stroke="#71717A"/>
-  <text x="920" y="275" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Baseline</text>
+  <!-- arrow ORCH ? PIPE -->
+  <line x1="420" y1="316" x2="420" y2="348" stroke="#52525B" stroke-width="2"/>
+  <polygon points="420,356 414,346 426,346" fill="#52525B"/>
 
-  <line x1="660" y1="188" x2="660" y2="244" stroke="#52525B" stroke-width="1.5"/>
+  <!-- PIPE subgraph -->
+  <rect x="40" y="356" width="920" height="120" fill="#12181F" stroke="#71717A" stroke-width="1.5"/>
+  <text x="56" y="380" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="13" font-weight="700">Agent Society pipeline</text>
 
-  <!-- Alibaba Cloud -->
-  <rect x="40" y="340" width="920" height="200" fill="#12181F" stroke="#F0E28A" stroke-width="2"/>
-  <text x="60" y="372" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="16" font-weight="700">Alibaba Cloud (Qwen Cloud / DashScope + OSS)</text>
+  <rect x="56" y="396" width="96" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="104" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Extractor</text>
+  <line x1="152" y1="422" x2="168" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="168,422 160,418 160,426" fill="#52525B"/>
 
-  <rect x="60" y="396" width="420" height="120" fill="#0B0F14" stroke="#F2EDE4" stroke-width="1.5"/>
-  <text x="80" y="428" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">DashScope Model Studio</text>
-  <text x="80" y="452" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Chat: dashscope-intl…/compatible-mode/v1</text>
-  <text x="80" y="472" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Model: qwen3.7-plus (LangChain ChatOpenAI)</text>
-  <text x="80" y="492" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Video: Wan / HappyHorse T2V async API</text>
+  <rect x="168" y="396" width="96" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="216" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Physics</text>
+  <line x1="264" y1="422" x2="280" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="280,422 272,418 272,426" fill="#52525B"/>
 
-  <rect x="520" y="396" width="420" height="120" fill="#0B0F14" stroke="#F2EDE4" stroke-width="1.5"/>
-  <text x="540" y="428" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Object Storage Service (OSS)</text>
-  <text x="540" y="452" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Persist scene reconstruction MP4s</text>
-  <text x="540" y="472" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">SDK: ali-oss · region oss-ap-southeast-1</text>
-  <text x="540" y="492" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Proof: src/lib/alibaba.ts</text>
+  <rect x="280" y="396" width="96" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="328" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">CrossRef</text>
+  <line x1="376" y1="422" x2="392" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="392,422 384,418 384,426" fill="#52525B"/>
 
-  <line x1="390" y1="296" x2="270" y2="396" stroke="#3F3F46" stroke-width="1.5"/>
-  <line x1="695" y1="296" x2="730" y2="396" stroke="#3F3F46" stroke-width="1.5"/>
+  <rect x="392" y="396" width="96" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="440" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Debate</text>
+  <line x1="488" y1="422" x2="504" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="504,422 496,418 496,426" fill="#52525B"/>
 
-  <text x="40" y="580" fill="#71717A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Live only — no mock agents. Every analysis step calls Alibaba Cloud DashScope; optional clips upload to OSS.</text>
-  <text x="40" y="602" fill="#52525B" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">Demo: https://getdetectr.vercel.app · Repo: https://github.com/fozagtx/detectr</text>
+  <rect x="504" y="396" width="96" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="552" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Director</text>
+  <line x1="600" y1="422" x2="616" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="616,422 608,418 608,426" fill="#52525B"/>
+
+  <rect x="616" y="396" width="100" height="52" fill="#1A222C" stroke="#F0E28A" stroke-width="1.5"/>
+  <text x="666" y="427" text-anchor="middle" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Visualizer</text>
+  <line x1="716" y1="422" x2="732" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="732,422 724,418 724,426" fill="#52525B"/>
+
+  <rect x="732" y="396" width="100" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="782" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Detective</text>
+  <line x1="832" y1="422" x2="848" y2="422" stroke="#52525B" stroke-width="1.5"/>
+  <polygon points="848,422 840,418 840,426" fill="#52525B"/>
+
+  <rect x="848" y="396" width="96" height="52" fill="#1A222C" stroke="#71717A"/>
+  <text x="896" y="427" text-anchor="middle" fill="#E4E4E7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Baseline</text>
+
+  <!-- arrows PIPE ? ALI -->
+  <line x1="500" y1="476" x2="500" y2="508" stroke="#52525B" stroke-width="2"/>
+  <polygon points="500,516 494,506 506,506" fill="#52525B"/>
+  <line x1="666" y1="448" x2="666" y2="470" stroke="#3F3F46" stroke-width="1.5"/>
+  <line x1="666" y1="470" x2="720" y2="508" stroke="#3F3F46" stroke-width="1.5"/>
+  <polygon points="724,514 714,506 720,502" fill="#3F3F46"/>
+
+  <!-- ALI subgraph -->
+  <rect x="40" y="516" width="920" height="150" fill="#12181F" stroke="#F0E28A" stroke-width="2"/>
+  <text x="56" y="544" fill="#F0E28A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">Alibaba Cloud · Qwen Cloud</text>
+
+  <rect x="56" y="560" width="440" height="84" fill="#0B0F14" stroke="#F2EDE4" stroke-width="1.5"/>
+  <text x="76" y="592" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">DashScope</text>
+  <text x="76" y="616" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">qwen3.7-plus + Wan / HappyHorse T2V</text>
+
+  <rect x="520" y="560" width="420" height="84" fill="#0B0F14" stroke="#F2EDE4" stroke-width="1.5"/>
+  <text x="540" y="592" fill="#F2EDE4" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700">OSS</text>
+  <text x="540" y="616" fill="#A1A1AA" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">scene MP4s · ali-oss · proof: src/lib/alibaba.ts</text>
+
+  <text x="40" y="698" fill="#71717A" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">Live only — pipeline ? DashScope; Visualizer ? OSS. Demo: getdetectr.vercel.app</text>
 </svg>
