@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   title: "Detectr",
   description:
     "See what witnesses said, what holds up, and how the scene likely looked.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
