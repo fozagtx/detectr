@@ -1,0 +1,12 @@
+{
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "functions": {
+    "src/app/api/analyze/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/detective/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
