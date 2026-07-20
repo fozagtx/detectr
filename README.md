@@ -44,9 +44,33 @@ Also:
 
 ### 3. Architecture diagram
 
-![Detectr architecture](docs/architecture.svg)
+```mermaid
+flowchart TB
+  FE["Frontend · Next.js + HeroUI Brutalism"]
+  API["Backend · /api/analyze · /api/detective · /api/demo"]
+  ORCH["LangGraph Orchestrator · Agent Society StateGraph"]
 
-Raw file for Devpost upload:  
+  FE --> API --> ORCH
+
+  subgraph PIPE["Agent Society pipeline"]
+    direction LR
+    E[Extractor] --> P[Physics] --> X[CrossRef] --> D[Debate] --> SD[Director] --> V[Visualizer] --> DET[Detective] --> B[Baseline]
+  end
+
+  ORCH --> PIPE
+  STORE[("Case Store · memory + /tmp")]
+  ORCH --> STORE
+
+  subgraph ALI["Alibaba Cloud · Qwen Cloud"]
+    DS["DashScope · qwen3.7-plus + Wan/HappyHorse T2V"]
+    OSS["OSS · scene MP4s · ali-oss"]
+  end
+
+  PIPE --> DS
+  V --> OSS
+```
+
+Raw SVG for Devpost upload:  
 **https://github.com/fozagtx/detectr/blob/main/docs/architecture.svg**
 
 ### 4. Demo video (~3 minutes)
