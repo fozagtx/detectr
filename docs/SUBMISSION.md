@@ -7,10 +7,10 @@
 **Tagline:** Multi-agent forensic analysis that validates witness claims with physics and reconstructs scenes for jury visualization.
 
 **Alibaba Cloud proof (link this file on Devpost):**  
-https://github.com/YOUR_USER/detectr/blob/main/src/lib/alibaba.ts
+https://github.com/fozagtx/detectr/blob/main/src/lib/alibaba.ts
 
 **Architecture diagram:**  
-https://github.com/YOUR_USER/detectr/blob/main/docs/architecture.svg
+https://github.com/fozagtx/detectr/blob/main/docs/architecture.svg
 
 **Open source license:** MIT (LICENSE at repo root)
 
