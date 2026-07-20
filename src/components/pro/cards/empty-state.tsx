@@ -1,6 +1,5 @@
 "use client";
 
-/** Pro empty — dashed card + solar duotone (clean_product empty matrix) */
 import { Button, Card, CardBody } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -19,8 +18,8 @@ export default function EmptyState({
 }) {
   return (
     <Card
-      className="border-small border-dashed border-default-200 bg-content1"
-      shadow="none"
+      className="border-small border-default-200 bg-content1"
+      shadow="sm"
     >
       <CardBody className="items-center gap-3 py-14 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-default-100">
