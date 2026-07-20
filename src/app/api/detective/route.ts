@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { chatWithDetective } from "@/agents/detective";
+import {
+  RATE,
+  clientIp,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 import { loadAnalysis, loadCase } from "@/lib/store";
 import type { AnalysisResult, CaseInput } from "@/lib/types";
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(
+      `detective:${clientIp(req)}`,
+      RATE.detective.limit,
+      RATE.detective.windowMs,
+    );
+    if (!limited.ok) return rateLimitResponse(limited);
+
     const body = (await req.json()) as {
       caseId: string;
       message: string;

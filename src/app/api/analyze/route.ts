@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { runOrchestrator } from "@/agents/orchestrator";
 import { createOakStreetDemo } from "@/lib/demo-case";
 import { requireQwenKey } from "@/lib/langchain";
+import {
+  RATE,
+  clientIp,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 import { saveAnalysis, saveCase } from "@/lib/store";
 import type { CaseInput } from "@/lib/types";
 
@@ -9,6 +15,13 @@ export const maxDuration = 300;
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(
+      `analyze:${clientIp(req)}`,
+      RATE.analyze.limit,
+      RATE.analyze.windowMs,
+    );
+    if (!limited.ok) return rateLimitResponse(limited);
+
     requireQwenKey();
 
     const body = (await req.json()) as {

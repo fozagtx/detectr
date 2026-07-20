@@ -242,7 +242,17 @@ export default function Home() {
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Could not review this case");
+      if (!res.ok) {
+        if (res.status === 429) {
+          const wait = json.retryAfterSec
+            ? ` Try again in about ${json.retryAfterSec}s.`
+            : "";
+          throw new Error(
+            (json.error || "Too many reviews from this network.") + wait,
+          );
+        }
+        throw new Error(json.error || "Could not review this case");
+      }
       if (runIntent.current === "paused" || runIntent.current === "stopped") {
         return;
       }
@@ -301,7 +311,15 @@ export default function Home() {
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Could not answer");
+      if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error(
+            json.error ||
+              "Too many questions right now. Wait a bit and try again.",
+          );
+        }
+        throw new Error(json.error || "Could not answer");
+      }
       setChat([...nextHistory, { role: "assistant", content: json.reply }]);
     } catch (e) {
       if (ac.signal.aborted) return;
