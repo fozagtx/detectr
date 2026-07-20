@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Detectr">
+  <rect width="64" height="64" fill="#0B0F14"/>
+  <!-- Brutal D -->
+  <path
+    d="M14 12h22c12.5 0 22 9.2 22 20S48.5 52 36 52H14V12z"
+    fill="#F2EDE4"
+  />
+  <path
+    d="M26 24h8c5.2 0 9 3.6 9 8s-3.8 8-9 8h-8V24z"
+    fill="#0B0F14"
+  />
+  <!-- Witness slit / lamp beam -->
+  <rect x="30" y="10" width="4" height="44" fill="#F0E28A"/>
+</svg>

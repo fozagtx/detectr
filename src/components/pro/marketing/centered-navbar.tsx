@@ -17,6 +17,8 @@ import {
   cn,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
+import { Logo } from "@/components/logo";
+
 const MENU = [
   { label: "Home", href: "#top" },
   { label: "Why Detectr", href: "#why" },
@@ -57,9 +59,11 @@ const CenteredNavbar = React.forwardRef<HTMLElement, CenteredNavbarProps>(
         {...props}
       >
         <NavbarBrand>
-          <span className="text-small font-semibold tracking-wide text-background">
-            Detectr
-          </span>
+          <Logo
+            size={28}
+            withWordmark
+            wordmarkClassName="text-background"
+          />
         </NavbarBrand>
 
         <NavbarContent className="hidden md:flex" justify="center">

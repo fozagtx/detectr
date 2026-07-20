@@ -31,6 +31,7 @@ import TrendCard from "@/components/pro/charts/trend-card";
 import SupportCard from "@/components/pro/forms/support-card";
 import { CopyText } from "@/components/pro/tables/copy-text";
 import CenteredNavbar from "@/components/pro/marketing/centered-navbar";
+import { Logo } from "@/components/logo";
 import type {
   AnalysisResult,
   AppStep,
@@ -124,7 +125,7 @@ export default function Home() {
     Array<{ role: "user" | "assistant"; content: string }>
   >([]);
   const [chatBusy, setChatBusy] = useState(false);
-  const [generateVideos, setGenerateVideos] = useState(true);
+  const [generateVideos, setGenerateVideos] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [linkPrompt, setLinkPrompt] = useState("");
   const analyzeAbort = useRef<AbortController | null>(null);
@@ -204,13 +205,16 @@ export default function Home() {
     void runAnalysis(resumeDemo.current);
   }
 
-  async function runAnalysis(useDemo = false) {
+  async function runAnalysis(useDemo = false, opts?: { videos?: boolean }) {
     analyzeAbort.current?.abort();
     const ac = new AbortController();
     analyzeAbort.current = ac;
     resumeDemo.current = useDemo;
     setError(null);
     setRunState("running");
+
+    // Sample / Review sample: text agents only — videos make Vercel time out
+    const wantVideos = opts?.videos ?? (useDemo ? false : generateVideos);
 
     try {
       const res = await fetch("/api/analyze", {
@@ -220,8 +224,8 @@ export default function Home() {
         body: JSON.stringify({
           useDemo,
           case: useDemo ? undefined : caseInput,
-          runBaseline: true,
-          generateVideos,
+          runBaseline: !useDemo,
+          generateVideos: wantVideos,
         }),
       });
       const json = await res.json();
@@ -233,7 +237,12 @@ export default function Home() {
       setRunState("idle");
     } catch (e) {
       if (ac.signal.aborted) return;
-      setError(e instanceof Error ? e.message : "Could not review this case");
+      const msg = e instanceof Error ? e.message : "Could not review this case";
+      setError(
+        /failed to fetch|networkerror|timeout/i.test(msg)
+          ? "Review timed out or lost connection. Turn videos off and try again."
+          : msg,
+      );
       setRunState("idle");
     } finally {
       if (analyzeAbort.current === ac) analyzeAbort.current = null;
@@ -302,13 +311,8 @@ export default function Home() {
   // Pro Application/sidebars (19) layout — brand, user cell, nav, footer
   const sidebarNav = (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-2 px-2">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-foreground">
-          <span className="text-tiny font-bold text-background">D</span>
-        </div>
-        <span className="text-small font-bold uppercase tracking-wide">
-          Detectr
-        </span>
+      <div className="px-2">
+        <Logo size={32} withWordmark />
       </div>
 
       <Spacer y={8} />
@@ -412,9 +416,11 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
           <div className="relative z-10 mx-auto flex min-h-[min(88dvh,720px)] w-full max-w-3xl flex-col justify-end gap-5 px-4 pb-10 pt-28 sm:px-6 sm:pb-14">
-            <p className="text-4xl font-semibold tracking-wide text-foreground sm:text-5xl">
-              Detectr
-            </p>
+            <Logo
+              size={56}
+              withWordmark
+              wordmarkClassName="text-4xl font-semibold tracking-wide text-foreground sm:text-5xl"
+            />
             <h1 className="max-w-xl text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl">
               four people, four nights
             </h1>
@@ -444,7 +450,10 @@ export default function Home() {
                 radius="none"
                 size="lg"
                 className="border-2 border-foreground bg-background font-medium"
-                onPress={() => runAnalysis(true)}
+                onPress={() => {
+                  setGenerateVideos(false);
+                  void runAnalysis(true, { videos: false });
+                }}
               >
                 Review sample
               </Button>
@@ -495,7 +504,9 @@ export default function Home() {
                 description: linkPrompt.trim(),
               }));
             }
-            void loadDemo().then(() => runAnalysis(true));
+            void loadDemo().then(() =>
+              runAnalysis(true, { videos: true }),
+            );
           }}
         />
 

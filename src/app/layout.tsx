@@ -21,7 +21,10 @@ export const metadata: Metadata = {
   description:
     "See what witnesses said, what holds up, and how the scene likely looked.",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png", sizes: "512x512" },
+    ],
     apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
   },
 };

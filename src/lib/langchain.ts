@@ -23,6 +23,7 @@ export function hasQwenKey(): boolean {
 
 /**
  * LangChain ChatOpenAI → Alibaba DashScope / Qwen Cloud (live only).
+ * Thinking OFF by default — qwen3.7-plus thinking makes sample runs time out.
  */
 export function getQwenChatModel(options?: {
   temperature?: number;
@@ -35,9 +36,12 @@ export function getQwenChatModel(options?: {
     temperature: options?.temperature ?? 0.2,
     apiKey,
     configuration: { baseURL: BASE_URL },
-    ...(options?.json
-      ? { modelKwargs: { response_format: { type: "json_object" } } }
-      : {}),
+    modelKwargs: {
+      enable_thinking: false,
+      ...(options?.json
+        ? { response_format: { type: "json_object" } }
+        : {}),
+    },
   });
 }
 
