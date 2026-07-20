@@ -30,7 +30,6 @@ import TrendCard from "@/components/pro/charts/trend-card";
 import SupportCard from "@/components/pro/forms/support-card";
 import { CopyText } from "@/components/pro/tables/copy-text";
 import CenteredNavbar from "@/components/pro/marketing/centered-navbar";
-import { BrandMark } from "@/components/brand-mark";
 import type {
   AnalysisResult,
   AppStep,
@@ -254,16 +253,13 @@ export default function Home() {
 
   const sidebarNav = (
     <>
-      <div className="flex items-center gap-2 px-2">
-        <BrandMark size={32} framed />
-        <div className="min-w-0">
-          <p className="truncate text-small font-bold uppercase tracking-wide">
-            Detectr
-          </p>
-          <p className="truncate text-tiny text-default-400">
-            {caseInput.caseName || "Open case"}
-          </p>
-        </div>
+      <div className="min-w-0 px-2">
+        <p className="truncate text-small font-bold uppercase tracking-wide">
+          Detectr
+        </p>
+        <p className="truncate text-tiny text-default-400">
+          {caseInput.caseName || "Open case"}
+        </p>
       </div>
 
       <Spacer y={6} />
@@ -317,71 +313,71 @@ export default function Home() {
     </>
   );
 
-  // ——— Landing: Pro CenteredNavbar + hero + ActionCards + LinkPrompt ———
+  // ——— Landing: Pro CenteredNavbar + full-bleed brutal hero + rest ———
   if (!inApp) {
     return (
-      <div
-        id="top"
-        className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 bg-background px-4 pb-10 pt-4 sm:px-6 sm:pb-14"
-      >
-        <CenteredNavbar
-          onGetStarted={() => {
-            document
-              .getElementById("case-form")
-              ?.scrollIntoView({ behavior: "smooth" });
-          }}
-        />
-
-        <div className="flex flex-wrap justify-center gap-2">
-          <Chip size="sm" color="primary" variant="flat">
-            For investigators
-          </Chip>
-          <Chip size="sm" variant="flat">
-            Witness statements
-          </Chip>
-          <Chip size="sm" variant="flat">
-            Scene videos
-          </Chip>
+      <div id="top" className="flex min-h-dvh w-full flex-col bg-background">
+        <div className="relative px-4 pt-4 sm:px-6">
+          <CenteredNavbar
+            onGetStarted={() => {
+              document
+                .getElementById("case-form")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
         </div>
 
-        <section className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-default-900 sm:text-4xl sm:leading-[1.15]">
-            when four people tell four different nights
-          </h1>
-          <p className="text-medium leading-relaxed text-default-500">
-            Detectr shows what holds up, where stories clash, and how the scene
-            likely looked — so a jury can actually follow along.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 pt-1">
-            <Button
-              color="primary"
-              radius="full"
-              size="lg"
-              startContent={
-                <Icon icon="solar:document-add-bold" width={20} />
-              }
-              onPress={() => {
-                document
-                  .getElementById("case-form")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Start a case
-            </Button>
-            <Button
-              variant="bordered"
-              radius="full"
-              size="lg"
-              startContent={
-                <Icon icon="solar:magic-stick-3-linear" width={18} />
-              }
-              onPress={() => runAnalysis(true)}
-            >
-              Review sample case
-            </Button>
+        {/* Full-bleed hero — original art only, no stock ads */}
+        <section className="relative mt-4 min-h-[min(88dvh,720px)] w-full overflow-hidden border-y-2 border-foreground">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero.jpg"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
+          <div className="relative z-10 mx-auto flex min-h-[min(88dvh,720px)] w-full max-w-3xl flex-col justify-end gap-5 px-4 pb-10 pt-28 sm:px-6 sm:pb-14">
+            <p className="text-4xl font-semibold tracking-wide text-foreground sm:text-5xl">
+              Detectr
+            </p>
+            <h1 className="max-w-xl text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl">
+              four people, four nights
+            </h1>
+            <p className="max-w-md text-medium leading-relaxed text-default-700">
+              See what holds up, where stories clash, and how the scene likely
+              looked.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                color="primary"
+                radius="none"
+                size="lg"
+                className="font-medium"
+                endContent={
+                  <Icon icon="solar:alt-arrow-right-linear" width={18} />
+                }
+                onPress={() => {
+                  document
+                    .getElementById("case-form")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Get Started
+              </Button>
+              <Button
+                variant="bordered"
+                radius="none"
+                size="lg"
+                className="border-2 border-foreground bg-background font-medium"
+                onPress={() => runAnalysis(true)}
+              >
+                Review sample
+              </Button>
+            </div>
           </div>
         </section>
 
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6 sm:py-14">
         <div id="why" className="grid gap-3 sm:grid-cols-3">
           <ActionCard
             color="primary"
@@ -573,6 +569,7 @@ export default function Home() {
             </Card>
           ))}
         </section>
+        </div>
       </div>
     );
   }
@@ -740,7 +737,6 @@ export default function Home() {
                     {caseInput.witnesses.map((w, idx) => (
                       <UserCell
                         key={w.id}
-                        avatar="/favicon.svg"
                         name={w.name || `Witness ${idx + 1}`}
                         permission={w.position || "No location set"}
                       />
@@ -1063,7 +1059,6 @@ export default function Home() {
                       <MessageCard
                         key={i}
                         showFeedback
-                        avatar="/favicon.svg"
                         message={m.content}
                       />
                     ) : (
