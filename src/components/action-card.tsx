@@ -52,8 +52,8 @@ const ActionCard = React.forwardRef<HTMLDivElement, ActionCardProps>(
     return (
       <Card
         ref={ref}
-        isPressable
-        className={cn("border-small", colors?.card, className)}
+        isPressable={"onPress" in props}
+        className={cn("border-small bg-content1", colors?.card, className)}
         shadow="sm"
         {...props}
       >
@@ -67,7 +67,7 @@ const ActionCard = React.forwardRef<HTMLDivElement, ActionCardProps>(
             <Icon className={colors?.icon} icon={icon} width={24} />
           </div>
           <div className="flex flex-col">
-            <p className="text-medium">{title}</p>
+            <p className="text-medium font-medium text-default-900">{title}</p>
             <p className="text-small text-default-400">
               {description || children}
             </p>

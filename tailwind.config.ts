@@ -22,7 +22,7 @@ const config: Config = {
       themes: {
         light: {
           colors: {
-            background: "#FFFFFF",
+            background: "#F4F4F5",
             foreground: "#18181B",
             content1: "#FFFFFF",
             content2: "#F4F4F5",

@@ -36,7 +36,7 @@ export default function RootLayout({
       className={`light ${sans.variable} ${mono.variable}`}
       style={{ colorScheme: "light" }}
     >
-      <body className="min-h-screen bg-white font-sans text-zinc-900 antialiased">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
