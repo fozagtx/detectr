@@ -1,19 +1,27 @@
-# Demo video checklist (Devpost ~3 minutes)
+# Demo video (~3 minutes)
 
-Record at 1080p. Upload to YouTube/Vimeo as public.
+Record 1080p. Upload to **YouTube / Vimeo / Facebook Video** as **public**, then put the URL in [`SUBMISSION.md`](./SUBMISSION.md) and the README checklist.
 
-## Script
+## Script (match current UI)
 
-1. **0:00–0:20** — Title card / app header: “Detectr — AI Forensic Agent Society (Qwen Cloud, Track 3)”
-2. **0:20–0:40** — Click **Load Demo**. Scroll witness statements (Maria, James, Aisha, Derek).
-3. **0:40–1:10** — Click **Analyze Demo**. Narrate agents: ClaimExtractor → Physics → CrossReference → Debate → SceneDirector → Visualizer → Detective.
-4. **1:10–1:50** — **ANALYSIS**: claim tags, Maria Santos physics table (scar UNLIKELY), Agent Debate panel, cross-ref agreements/contradictions.
-5. **1:50–2:15** — **VIDEOS**: show storyboard/clips of alley flight reconstruction.
-6. **2:15–2:40** — **REPORT**: summary (“4 witnesses / 17 claims / 2 unlikely”), baseline multi vs single table.
-7. **2:40–3:00** — **DETECTIVE**: ask “Why was the facial scar claim flagged unlikely?” Show grounded answer.
+| Time | Action / narration |
+|------|---------------------|
+| **0:00–0:20** | Open https://getdetectr.vercel.app. Title: “Detectr — AI Forensic Agent Society on Qwen Cloud, Track 3.” Show logo + brutal hero. |
+| **0:20–0:35** | Click **Review sample**. Say: “One click loads the Oak Street Incident — four witnesses, conflicting stories.” |
+| **0:35–1:20** | While “Reviewing” runs, narrate the Agent Society: Extractor → Physics → CrossRef → Debate → Director → Detective (videos off for a fast judge path). |
+| **1:20–1:55** | **Checks** tab: show claims, physics verdicts (call out an UNLIKELY detail like the scar), cross-ref / debate if visible. |
+| **1:55–2:20** | **Summary** report: narrative + key findings. Mention multi-agent vs single-agent baseline when enabled. |
+| **2:20–2:45** | **Ask**: “Why was the facial scar hard to believe?” Show grounded Detective answer. |
+| **2:45–3:00** | Flash architecture diagram (`docs/architecture.svg`) + open `src/lib/alibaba.ts` as Alibaba Cloud proof. End card with repo + live URL. |
 
 ## Optional B-roll
 
-- `docs/architecture.svg`
-- `src/lib/alibaba.ts` as Alibaba proof
+- Toggle **Generate scene videos** on a second short cut (or skip if quota is low)
 - Agent log lines
+- Pause / Stop all controls
+
+## After upload
+
+1. Paste public URL into `docs/SUBMISSION.md` (Demo video field)
+2. Paste same URL into Devpost
+3. Check README checklist box

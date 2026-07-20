@@ -2,10 +2,79 @@
 
 **AI Forensic Agent Society** — turn witness testimony into physics-checked claims, cross-referenced findings, Wan scene reconstructions, and an investigator-ready report.
 
-Built for the **[Global AI Hackathon with Qwen Cloud](https://qwencloud-hackathon.devpost.com/)** · **Track 3: Agent Society**
+Built for the **[Global AI Hackathon with Qwen Cloud](https://qwencloud-hackathon.devpost.com/)**
 
-![License: MIT](https://img.shields.io/badge/license-MIT-teal)
-![Stack: Next.js + LangChain + LangGraph + Qwen](https://img.shields.io/badge/stack-Next.js%20%7C%20LangChain%20%7C%20LangGraph%20%7C%20Qwen-0b0f12)
+| Field | Value |
+|-------|--------|
+| **Track** | **Track 3: Agent Society** |
+| **Live demo** | https://getdetectr.vercel.app |
+| **Repository** | https://github.com/fozagtx/detectr |
+| **License** | [MIT](LICENSE) (visible in GitHub About) |
+
+![License: MIT](https://img.shields.io/badge/license-MIT-yellow)
+![Track 3](https://img.shields.io/badge/track-3%20Agent%20Society-0b0f12)
+![Stack](https://img.shields.io/badge/stack-LangChain%20%7C%20LangGraph%20%7C%20Qwen%20Cloud-f0e28a)
+
+---
+
+## Hackathon submission (judges)
+
+Paste these into Devpost. Full copy block also lives in [`docs/SUBMISSION.md`](docs/SUBMISSION.md).
+
+### 1. Code repository (public + open source)
+
+**https://github.com/fozagtx/detectr**
+
+- Public repo with all source, assets, and setup instructions (this README)
+- Open-source license: **[`LICENSE`](LICENSE)** (MIT) — shown in the GitHub **About** panel
+
+### 2. Proof of Alibaba Cloud
+
+Link this file on Devpost (DashScope / Qwen Cloud + OSS):
+
+**https://github.com/fozagtx/detectr/blob/main/src/lib/alibaba.ts**
+
+Also:
+
+| Proof | URL |
+|-------|-----|
+| LangChain → DashScope chat | [`src/lib/langchain.ts`](https://github.com/fozagtx/detectr/blob/main/src/lib/langchain.ts) |
+| Wan video API | [`src/agents/visualizer.ts`](https://github.com/fozagtx/detectr/blob/main/src/agents/visualizer.ts) |
+| Live proof JSON | https://getdetectr.vercel.app/api/demo?proof=alibaba |
+
+### 3. Architecture diagram
+
+![Detectr architecture](docs/architecture.svg)
+
+Raw file for Devpost upload:  
+**https://github.com/fozagtx/detectr/blob/main/docs/architecture.svg**
+
+### 4. Demo video (~3 minutes)
+
+Upload a **public** video to YouTube / Vimeo / Facebook Video.
+
+- Recording script: [`docs/DEMO_VIDEO.md`](docs/DEMO_VIDEO.md)
+- After upload, paste the URL into [`docs/SUBMISSION.md`](docs/SUBMISSION.md) and Devpost
+
+> Status: record + upload still required before final Devpost submit.
+
+### 5. Project description
+
+Detectr is a multi-agent forensic app for the Global AI Hackathon with Qwen Cloud (**Track 3: Agent Society**). Investigators enter a case and witness statements (or click **Review sample** for the Oak Street Incident). A **LangGraph** orchestrator runs a live Agent Society on **Alibaba Cloud DashScope / Qwen Cloud**:
+
+1. **ClaimExtractor** — atomic claims with sensory tags  
+2. **PhysicsValidator** — `POSSIBLE` / `UNCERTAIN` / `UNLIKELY` vs vision & acoustics limits  
+3. **CrossReference** — agreements, contradictions, unique details  
+4. **Debate** — Physics ↔ Detective when science conflicts with consensus  
+5. **SceneDirector + Visualizer** — storyboards + live Wan/HappyHorse clips (optional **Alibaba OSS**)  
+6. **Detective** — case report + grounded Q&A  
+7. **Baseline** — multi-agent society vs a single Qwen pass (Track 3 comparison)
+
+**Try it:** https://getdetectr.vercel.app → **Review sample**. Live Qwen only — no mock agents. Leave scene videos off for a fast judge path; turn them on for Wan reconstructions.
+
+### 6. Track
+
+**Track 3: Agent Society**
 
 ---
 
@@ -20,7 +89,7 @@ Investigators, witnesses, and juries often hear conflicting stories about the sa
 5. Storyboards and generates **live** scene videos (Wan / HappyHorse)  
 6. Synthesizes a case report and answers grounded detective questions  
 
-**Live only.** There is no mock mode, heuristic fallback, or simulated video path. Every analysis step calls Qwen via LangChain; every clip calls DashScope video APIs.
+**Live only.** There is no mock mode or simulated agent path. Analysis calls Qwen via LangChain; clips call DashScope video APIs.
 
 ---
 
@@ -32,11 +101,11 @@ INPUT → ANALYSIS → VIDEOS → REPORT → DETECTIVE
 
 | Step | What you see |
 |------|----------------|
-| **INPUT** | Case file + witnesses, or one-click **Load Demo** (Oak Street Incident) |
-| **ANALYSIS** | Claim chips, per-witness physics table, Agent Debate, cross-ref clusters, LangGraph agent log |
-| **VIDEOS** | Live Wan/HappyHorse reconstructions for SceneDirector shots |
-| **REPORT** | Narrative findings + **multi-agent vs single-agent baseline** metrics |
-| **DETECTIVE** | Chat grounded in the completed case file |
+| **Case** | Case file + witnesses, or **Review sample** (Oak Street Incident) |
+| **Checks** | Claims, physics scores, debate, cross-ref |
+| **Scenes** | Live Wan/HappyHorse reconstructions (when enabled) |
+| **Summary** | Narrative findings + optional multi vs single baseline |
+| **Ask** | Detective chat grounded in the completed case file |
 
 ---
 
@@ -58,43 +127,26 @@ extractClaims
 | Agent | Responsibility |
 |-------|----------------|
 | **ClaimExtractor** | Atomic claims + tags (`audio`, `motion`, `clothing`, `facial`, …) |
-| **PhysicsValidator** | `POSSIBLE` / `UNCERTAIN` / `UNLIKELY` + confidence + scientific reason |
+| **PhysicsValidator** | `POSSIBLE` / `UNCERTAIN` / `UNLIKELY` + confidence + reason |
 | **CrossReference** | Agreements, contradictions, unique details |
-| **Debate** | Physics ↔ Detective negotiation when `UNLIKELY` meets multi-witness tension |
-| **SceneDirector** | Storyboard prompts for key timeline beats |
-| **Visualizer** | Wan / HappyHorse T2V → optional Alibaba OSS upload |
+| **Debate** | Physics ↔ Detective negotiation |
+| **SceneDirector** | Storyboard prompts for key beats |
+| **Visualizer** | Wan / HappyHorse T2V → optional Alibaba OSS |
 | **Detective** | Final report + interactive Q&A |
-| **Baseline** | Single monolithic Qwen pass for Track 3 measurable comparison |
+| **Baseline** | Single monolithic Qwen pass for Track 3 comparison |
 
 LLM client: [`src/lib/langchain.ts`](src/lib/langchain.ts) (`ChatOpenAI` → DashScope OpenAI-compatible API).
 
 ---
 
-## Architecture
-
-![Detectr architecture](docs/architecture.svg)
-
-| Layer | Tech |
-|-------|------|
-| Frontend | Next.js 16 (App Router), TypeScript, Tailwind |
-| Agents | LangChain.js + LangGraph StateGraph |
-| Models | Qwen (`qwen3.7-plus`) + Wan / HappyHorse via DashScope |
-| Storage | Local JSON case store (`.data/`) + Alibaba Cloud OSS for MP4s |
-| Deploy | Docker → Alibaba Cloud ECS / ACK / Function Compute |
-
-**Alibaba Cloud proof (Devpost):** [`src/lib/alibaba.ts`](src/lib/alibaba.ts)  
-Runtime check: `GET /api/demo?proof=alibaba`
-
----
-
 ## Quick start
 
-### 1. Prerequisites
+### Prerequisites
 
 - Node.js 20+
 - A [Qwen Cloud / DashScope](https://www.qwencloud.com/) API key (`DASHSCOPE_API_KEY`)
 
-### 2. Install
+### Install
 
 ```bash
 git clone https://github.com/fozagtx/detectr.git
@@ -105,17 +157,17 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) → **Load Demo** → **Analyze Demo**.
+Open [http://localhost:3000](http://localhost:3000) → **Review sample**.
 
-### 3. Environment
+### Environment
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DASHSCOPE_API_KEY` | **Yes** | Qwen Cloud / DashScope key — app will not run without it |
+| `DASHSCOPE_API_KEY` | **Yes** | Qwen Cloud / DashScope key |
 | `QWEN_MODEL` | No | Default `qwen3.7-plus` |
 | `WAN_MODEL` | No | Default `happyhorse-1.1-t2v` |
-| `QWEN_BASE_URL` | No | Default DashScope intl compatible-mode URL |
-| `ALIBABA_OSS_*` | No | Upload generated videos to OSS (see `.env.example`) |
+| `QWEN_BASE_URL` | No | DashScope intl compatible-mode URL |
+| `ALIBABA_OSS_*` | No | Upload generated videos to OSS |
 
 ---
 
@@ -123,43 +175,17 @@ Open [http://localhost:3000](http://localhost:3000) → **Load Demo** → **Anal
 
 | Route | Method | Purpose |
 |-------|--------|---------|
-| `/api/analyze` | `POST` | Run full LangGraph Agent Society pipeline |
-| `/api/detective` | `POST` | Grounded detective chat for a completed case |
-| `/api/demo` | `GET` | Oak Street demo case (`?proof=alibaba` for cloud proof JSON) |
-
-Example:
+| `/api/analyze` | `POST` | Full LangGraph Agent Society pipeline |
+| `/api/detective` | `POST` | Grounded detective chat |
+| `/api/demo` | `GET` | Demo case (`?proof=alibaba` for cloud proof JSON) |
 
 ```bash
 curl -X POST http://localhost:3000/api/analyze \
   -H 'Content-Type: application/json' \
-  -d '{"useDemo":true,"runBaseline":true,"generateVideos":true}'
+  -d '{"useDemo":true,"runBaseline":false,"generateVideos":false}'
 ```
 
-> Video generation is async and can take several minutes per shot. Uncheck **Generate Wan scene videos** in the UI for analysis-only runs (still live Qwen — no mocks).
-
----
-
-## Docker (Alibaba Cloud)
-
-```bash
-docker build -t detectr .
-docker run -p 3000:3000 --env-file .env.local detectr
-```
-
-Push to Alibaba Container Registry and run on ECS/ACK, or use Function Compute custom runtime. Backend must reach DashScope endpoints.
-
----
-
-## Hackathon submission checklist
-
-- [x] Public open-source repo + **MIT** [`LICENSE`](LICENSE)
-- [x] Uses Qwen models on Qwen Cloud / DashScope
-- [x] Track identified: **Track 3 — Agent Society**
-- [x] Alibaba Cloud proof file: [`src/lib/alibaba.ts`](src/lib/alibaba.ts)
-- [x] Architecture diagram: [`docs/architecture.svg`](docs/architecture.svg)
-- [ ] ~3 min demo video — see [`docs/DEMO_VIDEO.md`](docs/DEMO_VIDEO.md)
-- [ ] Deployed Alibaba Cloud URL for judges
-- [ ] Paste description from [`docs/SUBMISSION.md`](docs/SUBMISSION.md) into Devpost
+> Leave `generateVideos` false for fast judging. Video generation is async and uses more quota.
 
 ---
 
@@ -171,12 +197,13 @@ src/
   app/              # Next.js UI + API routes
   lib/
     langchain.ts    # ChatOpenAI → DashScope
-    alibaba.ts      # OSS + DashScope proof
-    demo-case.ts    # Oak Street Incident seed (input only)
+    alibaba.ts      # OSS + DashScope proof (judges link this)
+    demo-case.ts    # Oak Street Incident seed
 docs/
-  architecture.svg
-  DEMO_VIDEO.md
-  SUBMISSION.md
+  architecture.svg  # Architecture diagram
+  DEMO_VIDEO.md     # ~3 min recording script
+  SUBMISSION.md     # Devpost paste fields
+LICENSE             # MIT
 ```
 
 ---
