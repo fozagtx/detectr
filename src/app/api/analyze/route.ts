@@ -34,10 +34,18 @@ export async function POST(req: Request) {
     caseInput.status = "ANALYZING";
     await saveCase(caseInput);
 
+    if (req.signal.aborted) {
+      return NextResponse.json({ error: "Stopped" }, { status: 400 });
+    }
+
     const analysis = await runOrchestrator(caseInput, {
       runBaseline: body.runBaseline ?? true,
       generateVideos: body.generateVideos ?? true,
     });
+
+    if (req.signal.aborted) {
+      return NextResponse.json({ error: "Stopped" }, { status: 400 });
+    }
 
     caseInput.status = "COMPLETE";
     await saveCase(caseInput);
@@ -45,6 +53,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ case: caseInput, analysis });
   } catch (err) {
+    if (req.signal.aborted) {
+      return NextResponse.json({ error: "Stopped" }, { status: 400 });
+    }
     console.error(err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Analysis failed" },

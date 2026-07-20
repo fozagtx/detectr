@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
+  Avatar,
   Button,
   Card,
   CardBody,
@@ -115,7 +116,9 @@ export default function Home() {
   const [caseInput, setCaseInput] = useState<CaseInput>(emptyCase);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [runState, setRunState] = useState<"idle" | "running" | "paused">(
+    "idle",
+  );
   const [chatInput, setChatInput] = useState("");
   const [chat, setChat] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
@@ -124,8 +127,13 @@ export default function Home() {
   const [generateVideos, setGenerateVideos] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [linkPrompt, setLinkPrompt] = useState("");
+  const analyzeAbort = useRef<AbortController | null>(null);
+  const chatAbort = useRef<AbortController | null>(null);
+  const resumeDemo = useRef(false);
 
-  const inApp = Boolean(analysis) || pending;
+  const pending = runState === "running";
+  const paused = runState === "paused";
+  const inApp = Boolean(analysis) || runState !== "idle";
   const stepIndex = STEPS.indexOf(step);
 
   const formCompletion = useMemo(() => {
@@ -176,30 +184,60 @@ export default function Home() {
     setStep("INPUT");
   }
 
-  function runAnalysis(useDemo = false) {
+  function pauseRun() {
+    analyzeAbort.current?.abort();
+    analyzeAbort.current = null;
+    setRunState("paused");
+  }
+
+  function stopAll() {
+    analyzeAbort.current?.abort();
+    analyzeAbort.current = null;
+    chatAbort.current?.abort();
+    chatAbort.current = null;
+    setRunState("idle");
+    setChatBusy(false);
     setError(null);
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            useDemo,
-            case: useDemo ? undefined : caseInput,
-            runBaseline: true,
-            generateVideos,
-          }),
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || "Could not review this case");
-        setCaseInput(json.case);
-        setAnalysis(json.analysis);
-        setStep("ANALYSIS");
-        setChat([{ role: "assistant", content: json.analysis.report.summary }]);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not review this case");
-      }
-    });
+  }
+
+  function resumeRun() {
+    void runAnalysis(resumeDemo.current);
+  }
+
+  async function runAnalysis(useDemo = false) {
+    analyzeAbort.current?.abort();
+    const ac = new AbortController();
+    analyzeAbort.current = ac;
+    resumeDemo.current = useDemo;
+    setError(null);
+    setRunState("running");
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ac.signal,
+        body: JSON.stringify({
+          useDemo,
+          case: useDemo ? undefined : caseInput,
+          runBaseline: true,
+          generateVideos,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Could not review this case");
+      setCaseInput(json.case);
+      setAnalysis(json.analysis);
+      setStep("ANALYSIS");
+      setChat([{ role: "assistant", content: json.analysis.report.summary }]);
+      setRunState("idle");
+    } catch (e) {
+      if (ac.signal.aborted) return;
+      setError(e instanceof Error ? e.message : "Could not review this case");
+      setRunState("idle");
+    } finally {
+      if (analyzeAbort.current === ac) analyzeAbort.current = null;
+    }
   }
 
   async function sendChat() {
@@ -208,11 +246,15 @@ export default function Home() {
     setChatInput("");
     const nextHistory = [...chat, { role: "user" as const, content: message }];
     setChat(nextHistory);
+    chatAbort.current?.abort();
+    const ac = new AbortController();
+    chatAbort.current = ac;
     setChatBusy(true);
     try {
       const res = await fetch("/api/detective", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: ac.signal,
         body: JSON.stringify({
           caseId: caseInput.id,
           message,
@@ -223,6 +265,7 @@ export default function Home() {
       if (!res.ok) throw new Error(json.error || "Could not answer");
       setChat([...nextHistory, { role: "assistant", content: json.reply }]);
     } catch (e) {
+      if (ac.signal.aborted) return;
       setChat([
         ...nextHistory,
         {
@@ -231,6 +274,7 @@ export default function Home() {
         },
       ]);
     } finally {
+      if (chatAbort.current === ac) chatAbort.current = null;
       setChatBusy(false);
     }
   }
@@ -247,24 +291,50 @@ export default function Home() {
     NAV.find((n) => n.key === step)?.title ?? "Detectr";
   const pageSub = pending
     ? "Reviewing testimony…"
-    : analysis
-      ? caseInput.caseName || "Open case"
-      : "Build a case to begin";
+    : paused
+      ? "Paused — resume when ready"
+      : analysis
+        ? caseInput.caseName || "Open case"
+        : "Build a case to begin";
 
+  // Pro Application/sidebars (19) layout — brand, user cell, nav, footer
   const sidebarNav = (
-    <>
-      <div className="min-w-0 px-2">
-        <p className="truncate text-small font-bold uppercase tracking-wide">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+      <div className="flex items-center gap-2 px-2">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-foreground">
+          <span className="text-tiny font-bold text-background">D</span>
+        </div>
+        <span className="text-small font-bold uppercase tracking-wide">
           Detectr
-        </p>
-        <p className="truncate text-tiny text-default-400">
-          {caseInput.caseName || "Open case"}
-        </p>
+        </span>
       </div>
 
-      <Spacer y={6} />
+      <Spacer y={8} />
 
-      <ScrollShadow className="-mr-6 h-full max-h-full py-2 pr-6">
+      <div className="flex items-center gap-3 px-2">
+        <Avatar
+          isBordered
+          name={caseInput.caseName || "Case"}
+          size="sm"
+          radius="none"
+        />
+        <div className="min-w-0 flex flex-col">
+          <p className="truncate text-small font-medium text-default-600">
+            {caseInput.caseName || "Open case"}
+          </p>
+          <p className="truncate text-tiny text-default-400">
+            {pending
+              ? "Reviewing…"
+              : paused
+                ? "Paused"
+                : analysis
+                  ? "Investigator"
+                  : "Draft"}
+          </p>
+        </div>
+      </div>
+
+      <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
         <Sidebar
           key={step}
           defaultSelectedKey={step}
@@ -273,16 +343,17 @@ export default function Home() {
         />
       </ScrollShadow>
 
-      <Spacer y={4} />
+      <Spacer y={8} />
 
-      <div className="mt-auto flex flex-col gap-1">
+      <div className="mt-auto flex flex-col">
         <Button
+          fullWidth
           className="justify-start text-default-500 data-[hover=true]:text-foreground"
           startContent={
             <Icon
               className="text-default-500"
               icon="solar:play-circle-line-duotone"
-              width={22}
+              width={24}
             />
           }
           variant="light"
@@ -291,16 +362,18 @@ export default function Home() {
           Sample case
         </Button>
         <Button
+          fullWidth
           className="justify-start text-default-500 data-[hover=true]:text-foreground"
           startContent={
             <Icon
               className="text-default-500"
               icon="solar:add-circle-line-duotone"
-              width={22}
+              width={24}
             />
           }
           variant="light"
           onPress={() => {
+            stopAll();
             setAnalysis(null);
             setCaseInput(emptyCase());
             setChat([]);
@@ -310,7 +383,7 @@ export default function Home() {
           New case
         </Button>
       </div>
-    </>
+    </div>
   );
 
   // ——— Landing: Pro CenteredNavbar + full-bleed brutal hero + rest ———
@@ -586,7 +659,9 @@ export default function Home() {
         onOpenChange={setMobileOpen}
         sidebarWidth={288}
       >
-        <div className="flex h-full flex-col p-6">{sidebarNav}</div>
+        <div className="relative flex h-full w-72 flex-1 flex-col border-r-small border-divider p-6">
+          {sidebarNav}
+        </div>
       </SidebarDrawer>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -611,6 +686,11 @@ export default function Home() {
           {pending && (
             <Chip size="sm" color="primary" variant="flat" className="shrink-0">
               Working
+            </Chip>
+          )}
+          {paused && (
+            <Chip size="sm" color="warning" variant="flat" className="shrink-0">
+              Paused
             </Chip>
           )}
         </header>
@@ -639,35 +719,79 @@ export default function Home() {
               </Card>
             )}
 
-            {pending && (
+            {(pending || paused) && (
               <Card className="border-small border-default-200" shadow="sm">
-                <CardBody className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <CardBody className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3">
                     <div className="flex rounded-medium border border-primary-100 bg-primary-50 p-2">
                       <Icon
                         className="text-primary"
-                        icon="solar:hourglass-bold-duotone"
+                        icon={
+                          paused
+                            ? "solar:pause-circle-bold-duotone"
+                            : "solar:hourglass-bold-duotone"
+                        }
                         width={22}
                       />
                     </div>
                     <div>
                       <p className="text-medium font-medium">
-                        Reviewing the testimony
+                        {paused
+                          ? "Review paused"
+                          : "Reviewing the testimony"}
                       </p>
                       <p className="text-small text-default-500">
-                        Checking details, comparing people, writing a clear
-                        summary.
+                        {paused
+                          ? "Nothing is running. Resume to continue, or stop all."
+                          : "Checking details, comparing people, writing a clear summary."}
                       </p>
                     </div>
                   </div>
-                  <Button color="primary" radius="full" isLoading>
-                    Working…
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {pending && (
+                      <Button
+                        variant="bordered"
+                        radius="none"
+                        className="border-2 border-foreground font-medium"
+                        startContent={
+                          <Icon icon="solar:pause-bold" width={16} />
+                        }
+                        onPress={pauseRun}
+                      >
+                        Pause
+                      </Button>
+                    )}
+                    {paused && (
+                      <Button
+                        color="primary"
+                        radius="none"
+                        className="font-medium"
+                        startContent={
+                          <Icon icon="solar:play-bold" width={16} />
+                        }
+                        onPress={resumeRun}
+                      >
+                        Resume
+                      </Button>
+                    )}
+                    <Button
+                      color="danger"
+                      variant="flat"
+                      radius="none"
+                      className="font-medium"
+                      startContent={
+                        <Icon icon="solar:stop-bold" width={16} />
+                      }
+                      onPress={stopAll}
+                    >
+                      Stop all
+                    </Button>
+                  </div>
                 </CardBody>
               </Card>
             )}
 
-            {step === "INPUT" && !pending && (
+            {step === "INPUT" && runState === "idle" && (
               <>
                 <Card className="border-small border-default-200" shadow="sm">
                   <CardHeader className="flex flex-col items-start gap-1 px-5 pb-0 pt-5">
@@ -1072,7 +1196,21 @@ export default function Home() {
                     ),
                   )}
                   {chatBusy && (
-                    <p className="text-tiny text-default-400">Thinking…</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-tiny text-default-400">Thinking…</p>
+                      <Button
+                        size="sm"
+                        color="danger"
+                        variant="flat"
+                        radius="none"
+                        startContent={
+                          <Icon icon="solar:stop-bold" width={14} />
+                        }
+                        onPress={stopAll}
+                      >
+                        Stop all
+                      </Button>
+                    </div>
                   )}
                 </ScrollShadow>
 
