@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { chatWithDetective } from "@/agents/detective";
 import { loadAnalysis, loadCase } from "@/lib/store";
+import type { AnalysisResult, CaseInput } from "@/lib/types";
 
 export async function POST(req: Request) {
   try {
@@ -8,6 +9,9 @@ export async function POST(req: Request) {
       caseId: string;
       message: string;
       history?: Array<{ role: "user" | "assistant"; content: string }>;
+      /** Client payload — required on serverless when disk/memory miss */
+      case?: CaseInput;
+      analysis?: AnalysisResult;
     };
 
     if (!body.caseId || !body.message) {
@@ -17,8 +21,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const caseInput = await loadCase(body.caseId);
-    const analysis = await loadAnalysis(body.caseId);
+    const caseInput =
+      body.case ?? (await loadCase(body.caseId));
+    const analysis =
+      body.analysis ?? (await loadAnalysis(body.caseId));
     if (!caseInput || !analysis) {
       return NextResponse.json(
         { error: "Case analysis not found. Run analysis first." },

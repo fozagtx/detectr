@@ -259,6 +259,8 @@ export default function Home() {
           caseId: caseInput.id,
           message,
           history: chat,
+          case: caseInput,
+          analysis,
         }),
       });
       const json = await res.json();
@@ -648,18 +650,16 @@ export default function Home() {
   }
 
   // ——— App shell (Pro Sidebar 19 + RowSteps) ———
+  // SidebarDrawer owns BOTH mobile drawer + one permanent sm+ rail — do not add a second <aside>
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background">
-      <aside className="relative hidden h-full w-72 shrink-0 flex-col border-r-small border-divider bg-content1 p-6 md:flex">
-        {sidebarNav}
-      </aside>
-
       <SidebarDrawer
         isOpen={mobileOpen}
         onOpenChange={setMobileOpen}
         sidebarWidth={288}
+        className="shrink-0 border-r-small border-divider bg-content1"
       >
-        <div className="relative flex h-full w-72 flex-1 flex-col border-r-small border-divider p-6">
+        <div className="relative flex h-full w-full flex-1 flex-col p-6">
           {sidebarNav}
         </div>
       </SidebarDrawer>
@@ -670,8 +670,8 @@ export default function Home() {
             isIconOnly
             size="sm"
             variant="flat"
-            radius="full"
-            className="shrink-0 md:hidden"
+            radius="none"
+            className="shrink-0 sm:hidden"
             aria-label="Open menu"
             onPress={() => setMobileOpen(true)}
           >
